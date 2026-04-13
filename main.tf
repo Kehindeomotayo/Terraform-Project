@@ -139,3 +139,52 @@ resource "aws_instance" "T_ec2" {
     Name = "T-ec2"
   }
 }
+
+
+
+
+
+
+I have already implemented a break-glass access solution using CloudFormation StackSets with the following design:
+
+* IAM users are created locally in each target AWS account
+* Users log in directly to each account (no role assumption or switch role)
+* MFA is enforced
+* Read-only access is assigned using AWS managed policies
+* Two StackSets are used:
+
+  * One for Network account only
+  * One for other critical accounts (Prod, Shared, VDI)
+
+Now I need to enhance this solution with additional security and operational improvements.
+
+Please help me extend the existing CloudFormation template to include:
+
+1. Login Notification:
+
+   * Capture AWS Console login events using EventBridge
+   * Send notifications via SNS when a break-glass user logs in
+   * The notification should clearly indicate "Break-Glass Access Used"
+
+2. Tagging:
+
+   * Tag all IAM users with something like:
+
+     * BreakGlass = true
+     * Environment = Critical
+
+3. Optional enhancement (design-ready, not fully enforced yet):
+
+   * Prepare the template to support a future model where IAM users can be disabled by default and enabled during incidents
+
+4. Keep everything aligned with the existing architecture:
+
+   * No AssumeRole
+   * No centralized login account
+   * No cross-account trust relationships
+
+The output should be:
+
+* Clean, modular CloudFormation YAML
+* Easy to extend for future teams (e.g., VDI, application teams)
+* Production-ready and security-focused
