@@ -188,3 +188,142 @@ The output should be:
 * Clean, modular CloudFormation YAML
 * Easy to extend for future teams (e.g., VDI, application teams)
 * Production-ready and security-focused
+
+
+
+
+Here's a full summary of everything built for the Break Glass solution:
+
+Architecture Decision
+
+Moved away from the original approach (users in Audit account + AssumeRole)
+
+Users are now created directly in each target account
+
+No AssumeRole, no Switch Role, no cross-account trust
+
+Reason: STS AssumeRole API could fail during an outage, defeating the purpose
+
+Two StackSets Created
+
+Bg-PlatformMonitoringServer-StackSet.yaml
+
+Deploys to: Prod, Shared, VDI and Network accounts
+
+Creates 3 break glass users:
+
+bg-itops-platform-services
+
+bg-monitoring
+
+bg-itops-server-support
+
+Bg-Network-StackSet.yaml
+
+Deploys to: Network account only
+
+Creates 1 break glass user:
+
+bg-itops-network-support
+
+Security Controls Built In
+
+MFA enforced - users can't do anything without MFA
+
+ReadOnly access - ReadOnlyAccess managed policy attached to all users
+
+Users disabled by default - EnableUsers = false, no LoginProfile created on deployment
+
+PasswordResetRequired = false - users can login directly without forced reset
+
+Tags on all users:
+
+BreakGlass = true
+
+Environment = Critical
+
+Purpose = BreakGlassAccess
+
+bg-admin User
+
+Created in Bg-PlatformMonitoringServer-StackSet.yaml
+
+Username: bg-admin
+
+Always has an active LoginProfile - never disabled
+
+Has restricted IAM permissions to only:
+
+iam:CreateLoginProfile - enable a break glass user
+
+iam:DeleteLoginProfile - disable a break glass user
+
+iam:UpdateLoginProfile - update password
+
+iam:GetLoginProfile - check status
+
+Can only perform these actions on the 3 break glass users, nothing else
+
+How Enable/Disable Works
+
+Normal state: all break glass users have no LoginProfile - cannot login
+
+During incident: bg-admin logs in → goes to IAM → enables the relevant user's console access → shares password with the team
+
+After incident: bg-admin goes back to IAM → disables console access → user is locked out again
+
+Monitoring & Alerts
+
+SNS Topic created in each account for alerts
+
+EventBridge rules capture:
+
+Console login by any break glass user → fires *** BREAK-GLASS ACCESS USED *** alert
+
+Any IAM activity by break glass users → fires alert
+
+All alerts sent to the configured email address
+
+Everything logged in CloudTrail
+
+Network StackSet Specific
+
+All resource names prefixed with Network to avoid conflicts:
+
+BgNetworkActivityAlerts (SNS)
+
+BgNetworkMFAEnforcement (policy)
+
+BgNetworkConsoleLoginAlert (EventBridge)
+
+BgNetworkIAMActivityAlert (EventBridge)
+
+Login Flow During an Outage
+
+bg-admin logs into the affected account
+
+Enables the relevant break glass user via IAM console
+
+Shares credentials with the team
+
+Team logs in directly using:
+
+https://[account-id].signin.aws.amazon.com/console
+
+Username + Password + MFA
+
+Team investigates and resolves the incident
+
+bg-admin disables the user after the incident
+
+Everything is logged and alerted throughout
+
+Still Pending
+
+Team feedback on permissions (read-only vs SSO-aligned)
+
+Updating the StackSets in AWS console with the latest templates
+
+Setting up MFA for bg-admin after deployment
+
+Updating the documentation to reflect the new architecture
