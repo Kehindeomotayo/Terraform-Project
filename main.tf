@@ -327,3 +327,352 @@ Updating the StackSets in AWS console with the latest templates
 Setting up MFA for bg-admin after deployment
 
 Updating the documentation to reflect the new architecture
+
+
+
+
+
+
+
+
+
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Break Glass IAM Users - Deploy to Prod, Shared, VDI and Network accounts'
+
+Parameters:
+  PlatformUserPassword:
+    Type: String
+    NoEcho: true
+    Description: Password for bg-itops-platform-services user
+    MinLength: 14
+
+  MonitoringUserPassword:
+    Type: String
+    NoEcho: true
+    Description: Password for bg-monitoring user
+    MinLength: 14
+
+  ServerUserPassword:
+    Type: String
+    NoEcho: true
+    Description: Password for bg-itops-server-support user
+    MinLength: 14
+
+  AdminUserPassword:
+    Type: String
+    NoEcho: true
+    Description: Password for bg-admin user
+    MinLength: 14
+
+  AlertEmailAddress:
+    Type: String
+    Description: Email address for break glass activity alerts
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+  EnableUsers:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: Set to true to enable break glass users during an incident
+
+Conditions:
+  UsersEnabled: !Equals [!Ref EnableUsers, 'true']
+
+Resources:
+
+  # IAM Users
+  BgPlatformUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: bg-itops-platform-services
+      LoginProfile: !If
+        - UsersEnabled
+        - Password: !Ref PlatformUserPassword
+          PasswordResetRequired: false
+        - !Ref AWS::NoValue
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Tags:
+        - Key: Purpose
+          Value: BreakGlassAccess
+        - Key: Team
+          Value: IT Ops Platform Services
+        - Key: BreakGlass
+          Value: 'true'
+        - Key: Environment
+          Value: Critical
+
+  BgMonitoringUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: bg-monitoring
+      LoginProfile: !If
+        - UsersEnabled
+        - Password: !Ref MonitoringUserPassword
+          PasswordResetRequired: false
+        - !Ref AWS::NoValue
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Tags:
+        - Key: Purpose
+          Value: BreakGlassAccess
+        - Key: Team
+          Value: Monitoring
+        - Key: BreakGlass
+          Value: 'true'
+        - Key: Environment
+          Value: Critical
+
+  BgServerUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: bg-itops-server-support
+      LoginProfile: !If
+        - UsersEnabled
+        - Password: !Ref ServerUserPassword
+          PasswordResetRequired: false
+        - !Ref AWS::NoValue
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Tags:
+        - Key: Purpose
+          Value: BreakGlassAccess
+        - Key: Team
+          Value: IT Ops Server Support
+        - Key: BreakGlass
+          Value: 'true'
+        - Key: Environment
+          Value: Critical
+
+  # BG Admin User - Enable/Disable break glass users during incidents
+  BgAdminUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: bg-admin
+      LoginProfile:
+        Password: !Ref AdminUserPassword
+        PasswordResetRequired: false
+      Tags:
+        - Key: Purpose
+          Value: BreakGlassAdmin
+        - Key: BreakGlass
+          Value: 'true'
+        - Key: Environment
+          Value: Critical
+
+  BgAdminPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: BgAdminPolicy
+      Description: Allows bg-admin to enable and disable break glass user login profiles only
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ManageBreakGlassLoginProfiles
+            Effect: Allow
+            Action:
+              - iam:CreateLoginProfile
+              - iam:DeleteLoginProfile
+              - iam:UpdateLoginProfile
+              - iam:GetLoginProfile
+              - iam:GetUser
+              - iam:CreateVirtualMFADevice
+              - iam:EnableMFADevice
+              - iam:DeactivateMFADevice
+              - iam:DeleteVirtualMFADevice
+              - iam:ListMFADevices
+              - iam:ListAccessKeys
+              - iam:ListServiceSpecificCredentials
+              - iam:ListSSHPublicKeys
+              - iam:ListSigningCertificates
+            Resource:
+              - !GetAtt BgPlatformUser.Arn
+              - !GetAtt BgMonitoringUser.Arn
+              - !GetAtt BgServerUser.Arn
+
+
+
+
+
+
+
+
+
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Break Glass IAM Users - Deploy to Network account only'
+
+Parameters:
+  NetworkUserPassword:
+    Type: String
+    NoEcho: true
+    Description: Password for bg-itops-network-support user
+    MinLength: 14
+
+  AlertEmailAddress:
+    Type: String
+    Description: Email address for break glass activity alerts
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+  EnableUsers:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: Set to true to enable break glass users during an incident
+
+Conditions:
+  UsersEnabled: !Equals [!Ref EnableUsers, 'true']
+
+Resources:
+
+  # IAM User (Network Break Glass)
+  BgNetworkUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: bg-itops-network-support
+      LoginProfile: !If
+        - UsersEnabled
+        - Password: !Ref NetworkUserPassword
+          PasswordResetRequired: false
+        - !Ref AWS::NoValue
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Tags:
+        - Key: Purpose
+          Value: BreakGlassAccess
+        - Key: Team
+          Value: IT Ops Network Support
+        - Key: BreakGlass
+          Value: 'true'
+        - Key: Environment
+          Value: Critical
+
+  # MFA Enforcement Policy (FIXED)
+  MFAEnforcementPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: BgNetworkMFAEnforcement
+      Description: Denies all access if MFA is not present
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyConsoleAndAPIAccessWithoutMFA
+            Effect: Deny
+            Action: "*"
+            Resource: "*"
+            Condition:
+              Bool:
+                aws:MultiFactorAuthPresent: "false"
+      Users:
+        - !Ref BgNetworkUser
+
+  # SNS Alerts
+  BgAlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: BgNetworkActivityAlerts
+      DisplayName: Break Glass Network Activity Alerts
+      Tags:
+        - Key: Purpose
+          Value: BreakGlassMonitoring
+
+  BgAlertTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref BgAlertTopic
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowEventBridgePublish
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: SNS:Publish
+            Resource: !Ref BgAlertTopic
+
+  BgAlertSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref BgAlertTopic
+      Endpoint: !Ref AlertEmailAddress
+
+  # EventBridge Monitoring Rules
+
+  ConsoleLoginRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: BgNetworkConsoleLoginAlert
+      Description: Alert on break glass user console login
+      State: ENABLED
+      EventPattern:
+        source:
+          - aws.signin
+        detail-type:
+          - AWS Console Sign In via CloudTrail
+        detail:
+          userIdentity:
+            type:
+              - IAMUser
+            userName:
+              - bg-itops-network-support
+      Targets:
+        - Arn: !Ref BgAlertTopic
+          Id: BgConsoleLoginTarget
+          InputTransformer:
+            InputPathsMap:
+              userName: $.detail.userIdentity.userName
+              sourceIP: $.detail.sourceIPAddress
+              eventTime: $.detail.eventTime
+              mfaUsed: $.detail.additionalEventData.MFAUsed
+              account: $.account
+            InputTemplate: |
+              "*** BREAK-GLASS ACCESS USED ***"
+              "User: <userName>"
+              "Account: <account>"
+              "Source IP: <sourceIP>"
+              "Time: <eventTime>"
+              "MFA Used: <mfaUsed>"
+              "Action Required: Verify this is an authorized break glass access and log it in the incident ticket."
+
+  IAMActivityRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: BgNetworkIAMActivityAlert
+      Description: Alert on any IAM activity by break glass users
+      State: ENABLED
+      EventPattern:
+        source:
+          - aws.iam
+        detail-type:
+          - AWS API Call via CloudTrail
+        detail:
+          userIdentity:
+            type:
+              - IAMUser
+            userName:
+              - bg-itops-network-support
+      Targets:
+        - Arn: !Ref BgAlertTopic
+          Id: BgIAMActivityTarget
+          InputTransformer:
+            InputPathsMap:
+              userName: $.detail.userIdentity.userName
+              eventName: $.detail.eventName
+              sourceIP: $.detail.sourceIPAddress
+              eventTime: $.detail.eventTime
+              account: $.account
+            InputTemplate: |
+              "*** BREAK-GLASS IAM ACTIVITY DETECTED ***"
+              "User: <userName>"
+              "Account: <account>"
+              "Action: <eventName>"
+              "Source IP: <sourceIP>"
+              "Time: <eventTime>"
+              "Action Required: Investigate and validate this IAM activity."
