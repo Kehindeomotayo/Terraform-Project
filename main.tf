@@ -284,7 +284,6 @@ Outputs:
 
 
 
-
 AWS account
 	
 AWS Region
@@ -321,7 +320,7 @@ Last drift check time
 us-east-1
 arn:aws:cloudformation:us-east-1:076327095561:stack/StackSet-Bg-PlatformMonitoringServer-StackSet-4de247c2-0079-4e4b-8ee9-cf4f781eebb3/9c1588c0-3906-11f1-a4a3-1262d45d8089
 CANCELLED
-22356695-1468-b8b6-fdb5-af6e317222cd
+d99bd3dc-77b0-c0d9-fdbe-5af82b6681ef
 Cancelled since failure tolerance has exceeded
 NOT_CHECKED
 -
@@ -329,15 +328,15 @@ NOT_CHECKED
 us-east-1
 arn:aws:cloudformation:us-east-1:461164599838:stack/StackSet-Bg-PlatformMonitoringServer-StackSet-b3e8d3b4-374a-4179-b7df-1e7abeb35d3a/c5037080-3906-11f1-9b6b-0e7b22b3967b
 FAILED
-22356695-1468-b8b6-fdb5-af6e317222cd
-ResourceLogicalId:BgAdminPolicy, ResourceType:AWS::IAM::ManagedPolicy, ResourceStatusReason:Resource handler returned message: "A policy called BgAdminPolicy already exists. Duplicate names are not allowed. (Service: Iam, Status Code: 409, Request ID: 452f956a-9c23-405a-ba04-6053b0d02df3) (SDK Attempt Count: 1)" (RequestToken: b47e8207-7f44-4cff-750e-2646a61835aa, HandlerErrorCode: AlreadyExists).
+d99bd3dc-77b0-c0d9-fdbe-5af82b6681ef
+ResourceLogicalId:BgAdminPolicy, ResourceType:AWS::IAM::ManagedPolicy, ResourceStatusReason:Resource handler returned message: "A policy called BgAdminPolicy already exists. Duplicate names are not allowed. (Service: Iam, Status Code: 409, Request ID: 92c5d69e-20b6-413d-94bd-0f877384c109) (SDK Attempt Count: 1)" (RequestToken: 021a5ecf-0929-9702-c1d3-0cfda96b6712, HandlerErrorCode: AlreadyExists).
 NOT_CHECKED
 -
 751519514498
 us-east-1
 arn:aws:cloudformation:us-east-1:751519514498:stack/StackSet-Bg-PlatformMonitoringServer-StackSet-da7422b0-5469-4554-b444-6186f6083321/ee1d7150-3906-11f1-9ac1-125e736e87c1
 CANCELLED
-22356695-1468-b8b6-fdb5-af6e317222cd
+d99bd3dc-77b0-c0d9-fdbe-5af82b6681ef
 Cancelled since failure tolerance has exceeded
 NOT_CHECKED
 -
@@ -345,7 +344,7 @@ NOT_CHECKED
 us-east-1
 arn:aws:cloudformation:us-east-1:959563671843:stack/StackSet-Bg-PlatformMonitoringServer-StackSet-43e990ff-0194-46e2-a30a-b33470ce6dd6/16db4860-3907-11f1-b8db-1273ede9a5b1
 CANCELLED
-22356695-1468-b8b6-fdb5-af6e317222cd
+d99bd3dc-77b0-c0d9-fdbe-5af82b6681ef
 Cancelled since failure tolerance has exceeded
 NOT_CHECKED
 -
