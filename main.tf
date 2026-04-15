@@ -477,36 +477,12 @@ Cancelled since failure tolerance has exceeded
 
 
 
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "ManageBreakGlassLoginProfiles",
-      "Effect": "Allow",
-      "Action": [
-        "iam:CreateLoginProfile",
-        "iam:UpdateLoginProfile",
-        "iam:GetLoginProfile",
-        "iam:DeleteLoginProfile",
-        "iam:GetUser"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "ManageMFADevices",
-      "Effect": "Allow",
-      "Action": [
-        "iam:CreateVirtualMFADevice",
-        "iam:EnableMFADevice",
-        "iam:DeactivateMFADevice",
-        "iam:DeleteVirtualMFADevice",
-        "iam:ListMFADevices",
-        "iam:ListVirtualMFADevices",
-        "iam:ResyncMFADevice"
-      ],
-      "Resource": "*"
-    }
-  ]
+Access denied to iam:ListUsers
+You don't have permission to iam:ListUsers. To request access, copy the following text and send it to your AWS administrator. Learn more about troubleshooting access denied errors. 
+User: arn:aws:iam::461164599838:user/bg-admin
+Action: iam:ListUsers
+On resource(s): arn:aws:iam::461164599838:user/
+Context: no identity-based policy allows the action
 }
 
 
