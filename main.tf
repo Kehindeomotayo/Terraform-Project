@@ -82,12 +82,18 @@ Resources:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: BgAdminPolicy
-      Description: Allows bg-admin to enable and disable break glass user console access and manage MFA assignments
+      Description: Allows bg-admin to list break glass users, enable and disable console access, and manage MFA assignments
       Users:
         - !Ref BgAdminUser
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
+          - Sid: ListUsers
+            Effect: Allow
+            Action:
+              - iam:ListUsers
+            Resource: "*"
+
           - Sid: ManageBreakGlassLoginProfiles
             Effect: Allow
             Action:
@@ -273,15 +279,6 @@ Outputs:
   BreakGlassAdmin:
     Description: Break glass admin user
     Value: "bg-admin"
-
-
-
-
-
-
-
-
-
 
 
 
