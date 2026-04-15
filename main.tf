@@ -476,13 +476,42 @@ Cancelled since failure tolerance has exceeded
 
 
 
-
-Access denied to iam:ListUsers
-You don't have permission to iam:ListUsers. To request access, copy the following text and send it to your AWS administrator. Learn more about troubleshooting access denied errors. 
-User: arn:aws:iam::461164599838:user/bg-admin
-Action: iam:ListUsers
-On resource(s): arn:aws:iam::461164599838:user/
-Context: no identity-based policy allows the action
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListAndViewIAMUsers",
+      "Effect": "Allow",
+      "Action": [
+        "iam:ListUsers",
+        "iam:GetUser",
+        "iam:GetLoginProfile"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ManageBreakGlassLoginProfiles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateLoginProfile",
+        "iam:UpdateLoginProfile",
+        "iam:DeleteLoginProfile"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CleanupRelatedCredentials",
+      "Effect": "Allow",
+      "Action": [
+        "iam:ListAccessKeys",
+        "iam:DeleteAccessKey",
+        "iam:ListMFADevices",
+        "iam:DeactivateMFADevice",
+        "iam:ListVirtualMFADevices",
+        "iam:DeleteVirtualMFADevice"
+      ],
+      "Resource": "*"
+    }
+  ]
 }
-
 
