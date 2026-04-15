@@ -476,3 +476,37 @@ Cancelled since failure tolerance has exceeded
 
 
 
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ManageBreakGlassLoginProfiles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateLoginProfile",
+        "iam:UpdateLoginProfile",
+        "iam:GetLoginProfile",
+        "iam:DeleteLoginProfile",
+        "iam:GetUser"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ManageMFADevices",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:DeactivateMFADevice",
+        "iam:DeleteVirtualMFADevice",
+        "iam:ListMFADevices",
+        "iam:ListVirtualMFADevices",
+        "iam:ResyncMFADevice"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+
+
