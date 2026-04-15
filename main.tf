@@ -515,3 +515,32 @@ Cancelled since failure tolerance has exceeded
   ]
 }
 
+
+
+
+
+164599838
+us-east-1
+arn:aws:cloudformation:us-east-1:461164599838:stack/StackSet-Bg-PlatformMonitoringServer-StackSet-5b33c90a-db33-4d65-84a1-9e54d95ad891/906e94a0-3819-11f1-8e28-0ea5af7cf5ad
+CANCELLED
+aebb1432-04cc-f5e0-5c4b-a8d154a7023e
+Cancelled since failure tolerance has exceeded
+NOT_CHECKED
+-
+751519514498
+us-east-1
+arn:aws:cloudformation:us-east-1:751519514498:stack/StackSet-Bg-PlatformMonitoringServer-StackSet-b9daaefc-2523-4e7a-a95d-a9e03a117a11/67226040-3819-11f1-a412-12ae37ae6ea1
+INOPERABLE
+aebb1432-04cc-f5e0-5c4b-a8d154a7023e
+ResourceLogicalId:BgPlatformUser, ResourceType:AWS::IAM::User, ResourceStatusReason:Resource handler returned message: "Cannot delete entity, must delete login profile first. (Service: Iam, Status Code: 409, Request ID: aa4ccccf-c3e3-4855-a43c-b134e849bc1c) (SDK Attempt Count: 1)" (RequestToken: ee0cd1fe-7435-989f-39f0-7d3cbbe5367b, HandlerErrorCode: GeneralServiceException).
+NOT_CHECKED
+-
+959563671843
+us-east-1
+arn:aws:cloudformation:us-east-1:959563671843:stack/StackSet-Bg-PlatformMonitoringServer-StackSet-f9d73823-9eaf-4b38-b928-42b292abb362/130af8a0-3819-11f1-b052-126de7bacae5
+CANCELLED
+aebb1432-04cc-f5e0-5c4b-a8d154a7023e
+Cancelled since failure tolerance has exceeded
+NOT_CHECKED
+-
+
