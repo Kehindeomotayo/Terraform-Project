@@ -1,526 +1,143 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Break Glass IAM Users - Prod, Shared, VDI accounts'
+📘 RUNBOOK: Implementing Automated S3 → S3 File Sync Using AWS DataSync (Production Task)
+1. Purpose
+This document describes the steps required to configure an ongoing automated file sync between two Amazon S3 locations using AWS DataSync.
+It is intended for production tasks where accuracy, validation, and careful execution are required.
 
-Parameters:
-  AdminUserPassword:
-    Type: String
-    NoEcho: true
-    Description: Password for bg-admin user
-    MinLength: 14
+2. Scope
+This runbook applies to:
 
-  AlertEmailAddress:
-    Type: String
-    Description: Email address for break glass activity alerts
-    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+S3 → S3 continuous sync
 
-Resources:
+Production workloads
 
-  BgPlatformUser:
-    Type: AWS::IAM::User
-    Properties:
-      UserName: bg-itops-platform-services
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/ReadOnlyAccess
-      Tags:
-        - Key: Purpose
-          Value: BreakGlassAccess
-        - Key: Team
-          Value: IT Ops Platform Services
-        - Key: BreakGlass
-          Value: 'true'
-        - Key: Environment
-          Value: Critical
+Tasks requiring incremental updates
 
-  BgMonitoringUser:
-    Type: AWS::IAM::User
-    Properties:
-      UserName: bg-monitoring
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/ReadOnlyAccess
-      Tags:
-        - Key: Purpose
-          Value: BreakGlassAccess
-        - Key: Team
-          Value: Monitoring
-        - Key: BreakGlass
-          Value: 'true'
-        - Key: Environment
-          Value: Critical
+Scenarios where the requester explicitly asks for “file sync” rather than replication or manual copy
 
-  BgServerUser:
-    Type: AWS::IAM::User
-    Properties:
-      UserName: bg-itops-server-support
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/ReadOnlyAccess
-      Tags:
-        - Key: Purpose
-          Value: BreakGlassAccess
-        - Key: Team
-          Value: IT Ops Server Support
-        - Key: BreakGlass
-          Value: 'true'
-        - Key: Environment
-          Value: Critical
+3. Prerequisites
+Before starting:
 
-  BgAdminUser:
-    Type: AWS::IAM::User
-    Properties:
-      UserName: bg-admin
-      LoginProfile:
-        Password: !Ref AdminUserPassword
-        PasswordResetRequired: false
-      Tags:
-        - Key: Purpose
-          Value: BreakGlassAdmin
-        - Key: BreakGlass
-          Value: 'true'
-        - Key: Environment
-          Value: Critical
+Confirm with the requester whether they need:
 
-  BgAdminPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      ManagedPolicyName: BgAdminPolicy
-      Description: Allows bg-admin to list break glass users, enable and disable console access, and manage MFA assignments
-      Users:
-        - !Ref BgAdminUser
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: ListUsers
-            Effect: Allow
-            Action:
-              - iam:ListUsers
-            Resource: "*"
+One‑time copy, or
 
-          - Sid: ManageBreakGlassLoginProfiles
-            Effect: Allow
-            Action:
-              - iam:CreateLoginProfile
-              - iam:UpdateLoginProfile
-              - iam:GetLoginProfile
-              - iam:DeleteLoginProfile
-              - iam:GetUser
-            Resource:
-              - !GetAtt BgPlatformUser.Arn
-              - !GetAtt BgMonitoringUser.Arn
-              - !GetAtt BgServerUser.Arn
+Ongoing automated sync
 
-          - Sid: ManageBreakGlassMFADevices
-            Effect: Allow
-            Action:
-              - iam:CreateVirtualMFADevice
-              - iam:EnableMFADevice
-              - iam:DeactivateMFADevice
-              - iam:DeleteVirtualMFADevice
-              - iam:ListMFADevices
-              - iam:ListVirtualMFADevices
-              - iam:ResyncMFADevice
-            Resource: "*"
+Ensure you have:
 
-  BreakGlassMFAEnforcementPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      ManagedPolicyName: BreakGlassMFAEnforcement
-      Description: Deny all actions unless MFA is present, except MFA setup/self-service
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: AllowViewOwnUser
-            Effect: Allow
-            Action:
-              - iam:GetUser
-            Resource: !Sub arn:aws:iam::${AWS::AccountId}:user/${!aws:username}
+Access to AWS Console
 
-          - Sid: AllowManageOwnMFA
-            Effect: Allow
-            Action:
-              - iam:CreateVirtualMFADevice
-              - iam:EnableMFADevice
-              - iam:ListMFADevices
-              - iam:ListVirtualMFADevices
-              - iam:ResyncMFADevice
-            Resource: "*"
+Permissions for DataSync, S3, and IAM
 
-          - Sid: DenyEverythingElseIfNoMFA
-            Effect: Deny
-            NotAction:
-              - iam:GetUser
-              - iam:CreateVirtualMFADevice
-              - iam:EnableMFADevice
-              - iam:ListMFADevices
-              - iam:ListVirtualMFADevices
-              - iam:ResyncMFADevice
-              - sts:GetSessionToken
-            Resource: "*"
-            Condition:
-              BoolIfExists:
-                aws:MultiFactorAuthPresent: "false"
-      Users:
-        - !Ref BgPlatformUser
-        - !Ref BgMonitoringUser
-        - !Ref BgServerUser
+Gather the required S3 paths:
 
-  BgAlertTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      TopicName: BgActivityAlerts
-      DisplayName: Break Glass Activity Alerts
-      Tags:
-        - Key: Purpose
-          Value: BreakGlassMonitoring
+Source path
 
-  BgAlertTopicPolicy:
-    Type: AWS::SNS::TopicPolicy
-    Properties:
-      Topics:
-        - !Ref BgAlertTopic
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: AllowEventBridgePublish
-            Effect: Allow
-            Principal:
-              Service: events.amazonaws.com
-            Action: SNS:Publish
-            Resource: !Ref BgAlertTopic
+Destination path
 
-  BgAlertSubscription:
-    Type: AWS::SNS::Subscription
-    Properties:
-      Protocol: email
-      TopicArn: !Ref BgAlertTopic
-      Endpoint: !Ref AlertEmailAddress
+4. Implementation Steps
+Step 1 — Open AWS DataSync
+Log in to AWS Console
 
-  ConsoleLoginRule:
-    Type: AWS::Events::Rule
-    Properties:
-      Name: BgConsoleLoginAlert
-      Description: Alert on break glass user console login
-      State: ENABLED
-      EventPattern:
-        source:
-          - aws.signin
-        detail-type:
-          - AWS Console Sign In via CloudTrail
-        detail:
-          userIdentity:
-            type:
-              - IAMUser
-            userName:
-              - bg-itops-platform-services
-              - bg-monitoring
-              - bg-itops-server-support
-              - bg-admin
-      Targets:
-        - Arn: !Ref BgAlertTopic
-          Id: BgConsoleLoginTarget
-          InputTransformer:
-            InputPathsMap:
-              userName: $.detail.userIdentity.userName
-              sourceIP: $.detail.sourceIPAddress
-              eventTime: $.detail.eventTime
-              mfaUsed: $.detail.additionalEventData.MFAUsed
-              account: $.account
-            InputTemplate: |
-              "*** BREAK-GLASS ACCESS USED ***"
-              "User: <userName>"
-              "Account: <account>"
-              "Source IP: <sourceIP>"
-              "Time: <eventTime>"
-              "MFA Used: <mfaUsed>"
-              "Action Required: Verify this is an authorized break glass access and log it in the incident ticket."
+Search for DataSync
 
-  IAMActivityRule:
-    Type: AWS::Events::Rule
-    Properties:
-      Name: BgIAMActivityAlert
-      Description: Alert on any IAM activity by break glass users
-      State: ENABLED
-      EventPattern:
-        source:
-          - aws.iam
-        detail-type:
-          - AWS API Call via CloudTrail
-        detail:
-          userIdentity:
-            type:
-              - IAMUser
-            userName:
-              - bg-itops-platform-services
-              - bg-monitoring
-              - bg-itops-server-support
-              - bg-admin
-      Targets:
-        - Arn: !Ref BgAlertTopic
-          Id: BgIAMActivityTarget
-          InputTransformer:
-            InputPathsMap:
-              userName: $.detail.userIdentity.userName
-              eventName: $.detail.eventName
-              sourceIP: $.detail.sourceIPAddress
-              eventTime: $.detail.eventTime
-              account: $.account
-            InputTemplate: |
-              "*** BREAK-GLASS IAM ACTIVITY DETECTED ***"
-              "User: <userName>"
-              "Account: <account>"
-              "Action: <eventName>"
-              "Source IP: <sourceIP>"
-              "Time: <eventTime>"
-              "Action Required: Investigate and validate this IAM activity."
+Click Create task
 
-Outputs:
-  BreakGlassUsers:
-    Description: Break glass users created by this template
-    Value: "bg-itops-platform-services, bg-monitoring, bg-itops-server-support"
+Step 2 — Configure Source Location
+Select Amazon S3
 
-  BreakGlassAdmin:
-    Description: Break glass admin user
-    Value: "bg-admin"
+Choose the source bucket
 
+Enter the source folder path
 
+Allow DataSync to create an IAM role
 
+Example: AWSDataSyncS3BucketAccess-<bucket>-<id>
 
+Save the location
 
+Step 3 — Configure Destination Location
+Select Amazon S3
 
+Choose the destination bucket
 
+Enter the destination folder path
 
+Allow DataSync to create the IAM role
 
+Save the location
 
+Step 4 — Configure Task Settings
+Recommended settings for production:
 
+Mode: Enhanced
 
+Transfer mode: Incremental
 
+Verify data: Verify only transferred data
 
+Overwrite files: Yes
 
+Keep deleted files: Yes (safe default)
 
+Preserve tags: Yes
 
+Queueing: Enabled
 
+Step 5 — Configure Schedule
+Choose a schedule appropriate for the workload:
 
+Examples:
 
+Every 15 minutes
 
+Every hour
 
+Daily
 
+Avoid weekly schedules unless specifically requested.
 
+Step 6 — Create the Task
+Review all settings → Click Create task
 
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Break Glass IAM User - Network account only'
+Step 7 — Run Initial Sync
+Open the task
 
-Parameters:
-  AlertEmailAddress:
-    Type: String
-    Description: Email address for break glass activity alerts
-    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+Click Start
 
-Resources:
+Choose Start with default options
 
-  BgNetworkUser:
-    Type: AWS::IAM::User
-    Properties:
-      UserName: bg-itops-network-support
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/ReadOnlyAccess
-      Tags:
-        - Key: Purpose
-          Value: BreakGlassAccess
-        - Key: Team
-          Value: IT Ops Network Support
-        - Key: BreakGlass
-          Value: 'true'
-        - Key: Environment
-          Value: Critical
+Monitor the execution
 
-  BgAdminPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      ManagedPolicyName: BgNetworkAdminPolicy
-      Description: Allows existing bg-admin to list users, enable and disable network break glass console access, and manage MFA assignments
-      Users:
-        - bg-admin
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: ListUsers
-            Effect: Allow
-            Action:
-              - iam:ListUsers
-            Resource: "*"
+This validates:
 
-          - Sid: ManageBreakGlassLoginProfiles
-            Effect: Allow
-            Action:
-              - iam:CreateLoginProfile
-              - iam:UpdateLoginProfile
-              - iam:GetLoginProfile
-              - iam:DeleteLoginProfile
-              - iam:GetUser
-            Resource:
-              - !GetAtt BgNetworkUser.Arn
+IAM permissions
 
-          - Sid: ManageBreakGlassMFADevices
-            Effect: Allow
-            Action:
-              - iam:CreateVirtualMFADevice
-              - iam:EnableMFADevice
-              - iam:DeactivateMFADevice
-              - iam:DeleteVirtualMFADevice
-              - iam:ListMFADevices
-              - iam:ListVirtualMFADevices
-              - iam:ResyncMFADevice
-            Resource: "*"
+Path correctness
 
-  MFAEnforcementPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      ManagedPolicyName: BgNetworkMFAEnforcement
-      Description: Deny all actions unless MFA is present, except MFA setup/self-service
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: AllowViewOwnUser
-            Effect: Allow
-            Action:
-              - iam:GetUser
-            Resource: !Sub arn:aws:iam::${AWS::AccountId}:user/${!aws:username}
+Data transfer behavior
 
-          - Sid: AllowManageOwnMFA
-            Effect: Allow
-            Action:
-              - iam:CreateVirtualMFADevice
-              - iam:EnableMFADevice
-              - iam:ListMFADevices
-              - iam:ListVirtualMFADevices
-              - iam:ResyncMFADevice
-            Resource: "*"
+Step 8 — Validate Sync
+After the first run:
 
-          - Sid: DenyEverythingElseIfNoMFA
-            Effect: Deny
-            NotAction:
-              - iam:GetUser
-              - iam:CreateVirtualMFADevice
-              - iam:EnableMFADevice
-              - iam:ListMFADevices
-              - iam:ListVirtualMFADevices
-              - iam:ResyncMFADevice
-              - sts:GetSessionToken
-            Resource: "*"
-            Condition:
-              BoolIfExists:
-                aws:MultiFactorAuthPresent: "false"
-      Users:
-        - !Ref BgNetworkUser
+Check Execution history
 
-  BgAlertTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      TopicName: BgNetworkActivityAlerts
-      DisplayName: Break Glass Network Activity Alerts
-      Tags:
-        - Key: Purpose
-          Value: BreakGlassMonitoring
+Confirm SUCCESS status
 
-  BgAlertTopicPolicy:
-    Type: AWS::SNS::TopicPolicy
-    Properties:
-      Topics:
-        - !Ref BgAlertTopic
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: AllowEventBridgePublish
-            Effect: Allow
-            Principal:
-              Service: events.amazonaws.com
-            Action: SNS:Publish
-            Resource: !Ref BgAlertTopic
+Verify files appear in the destination bucket
 
-  BgAlertSubscription:
-    Type: AWS::SNS::Subscription
-    Properties:
-      Protocol: email
-      TopicArn: !Ref BgAlertTopic
-      Endpoint: !Ref AlertEmailAddress
+Confirm no permission or path errors
 
-  ConsoleLoginRule:
-    Type: AWS::Events::Rule
-    Properties:
-      Name: BgNetworkConsoleLoginAlert
-      Description: Alert on break glass user console login
-      State: ENABLED
-      EventPattern:
-        source:
-          - aws.signin
-        detail-type:
-          - AWS Console Sign In via CloudTrail
-        detail:
-          userIdentity:
-            type:
-              - IAMUser
-            userName:
-              - bg-itops-network-support
-              - bg-admin
-      Targets:
-        - Arn: !Ref BgAlertTopic
-          Id: BgConsoleLoginTarget
-          InputTransformer:
-            InputPathsMap:
-              userName: $.detail.userIdentity.userName
-              sourceIP: $.detail.sourceIPAddress
-              eventTime: $.detail.eventTime
-              mfaUsed: $.detail.additionalEventData.MFAUsed
-              account: $.account
-            InputTemplate: |
-              "*** BREAK-GLASS ACCESS USED ***"
-              "User: <userName>"
-              "Account: <account>"
-              "Source IP: <sourceIP>"
-              "Time: <eventTime>"
-              "MFA Used: <mfaUsed>"
-              "Action Required: Verify this is an authorized break glass access and log it in the incident ticket."
+5. Production Considerations
+Always validate with the requester before enabling sync
 
-  IAMActivityRule:
-    Type: AWS::Events::Rule
-    Properties:
-      Name: BgNetworkIAMActivityAlert
-      Description: Alert on any IAM activity by break glass users
-      State: ENABLED
-      EventPattern:
-        source:
-          - aws.iam
-        detail-type:
-          - AWS API Call via CloudTrail
-        detail:
-          userIdentity:
-            type:
-              - IAMUser
-            userName:
-              - bg-itops-network-support
-              - bg-admin
-      Targets:
-        - Arn: !Ref BgAlertTopic
-          Id: BgIAMActivityTarget
-          InputTransformer:
-            InputPathsMap:
-              userName: $.detail.userIdentity.userName
-              eventName: $.detail.eventName
-              sourceIP: $.detail.sourceIPAddress
-              eventTime: $.detail.eventTime
-              account: $.account
-            InputTemplate: |
-              "*** BREAK-GLASS IAM ACTIVITY DETECTED ***"
-              "User: <userName>"
-              "Account: <account>"
-              "Action: <eventName>"
-              "Source IP: <sourceIP>"
-              "Time: <eventTime>"
-              "Action Required: Investigate and validate this IAM activity."
+Double‑check S3 paths to avoid overwriting wrong locations
 
-Outputs:
-  BreakGlassUser:
-    Description: Break glass network user created by this template
-    Value: "bg-itops-network-support"
+Monitor the first execution
 
-  BreakGlassAdmin:
-    Description: Existing break glass admin user reused by this template
-    Value: "bg-admin"
+If unsure, ask for a second review before running in prod
+
+Document all changes in the ticket
+
+6. ServiceNow Work Notes Template
+You can paste this into the task:
