@@ -1,155 +1,76 @@
+Hi Marco , Rajesh ,
 
-Instance summary for i-07b64127dfdfc8d44 (EC2-Stage-B2BNAEC-App-01) 
-Info
+As you are aware we are working on MDR project ( Managed Detection and Response ) to replace Splunk & MSSP ( managed security service provider ) model to enhance our security detection and response capabilities. 
+As part of our initiative to enhance cloud threat detection and monitoring, we are planning to integrate AWS logs (for both Avantor and NuSil environments) with Red Canary.
 
-Connect
-Instance state
-Actions
-Updated about 1 hour ago
+This integration leverages AWS CloudTrail and related telemetry, enabling visibility into account activity, API calls, IAM changes, and potential suspicious behavior across our AWS environments.   Please review the AWS integration document for more details.
 
-Instance ID
-i-07b64127dfdfc8d44
-Public IPv4 address
-–
-Private IPv4 addresses
-10.51.0.13
-IPv6 address
-–
-Instance state
-Running
-Public DNS
-–
-Hostname type
-IP name: ip-10-51-0-13.ec2.internal
-Private IP DNS name (IPv4 only)
-ip-10-51-0-13.ec2.internal
-Answer private resource DNS name
-–
-Instance type
-t3a.xlarge
-Elastic IP addresses
-–
-Auto-assigned IP address
-–
-VPC ID
-vpc-0e53626c900d62326 (VPCInfrastructureStackStagingVPC) 
-AWS Compute Optimizer finding
-Over-provisioned.
-|
-View detail 
-IAM role
-SSMInstanceProfileRole 
-Subnet ID
-subnet-046b1fe225988229f (Staging_Pvt1.use1_az6) 
-Auto Scaling Group name
-–
-IMDSv2
-Required
-Instance ARN
-arn:aws:ec2:us-east-1:267122874949:instance/i-07b64127dfdfc8d44
-Managed
-false
-Operator
-–
+We require your support on the following:
 
-Details
+1. Prerequisites Validation
+•	Confirm AWS CloudTrail is enabled in all regions (multi-region trail preferred)
+•	Ensure CloudTrail is configured to log:
+o	Management events (Read/Write)
+o	Data events (S3, Lambda – if applicable)
+•	Validate log retention and centralized logging (S3 bucket)
 
-Status and alarms
+2. Access & Permissions
+•	Identify an AWS admin who can:
+o	Create and configure IAM role for Red Canary integration
+o	Establish cross-account trust (if required)
+•	Confirm readiness to allow Red Canary to access AWS logs via IAM role assumption
 
-Monitoring
+3. IAM Role Configuration
+•	Create an IAM role with:
+o	Read access to CloudTrail logs (S3 bucket)
+o	Permissions to describe account configurations (read-only)
+•	Configure trust relationship to allow Red Canary AWS account to assume the role
 
-Security
+4. Logging & Coverage
+Confirm availability of:
+•	CloudTrail logs (all regions/accounts)
+•	IAM activity (user/role creation, policy changes)
+•	Console login activity
+•	S3 access logs (if enabled)
+•	GuardDuty findings (recommended, if available)
 
-Networking
+5. Multi-Account / Multi-Environment Setup
+•	Confirm AWS account structure:
+o	Separate accounts for Avantor and NuSil?
+o	Use of AWS Organizations / centralized logging account?
+•	Identify if integration needs to be:
+o	Per account OR
+o	Centralized via log aggregation account
 
-Storage
+6. Security & Network Considerations
+•	Confirm no restrictions on:
+o	IAM role assumption by external AWS account (Red Canary)
+o	Access to S3 log buckets
+•	Validate bucket policies allow secure external read access (least privilege)
 
-Tags
-Instance details
-Info
-AMI ID
+7. Governance / Compliance
+•	Confirm approval for sharing AWS telemetry with Red Canary
+•	Highlight any regulatory or data residency constraints
 
-ami-0045783bfcf7fe34e (AMI_AVTR-lxb2bnaecqa01)
-Monitoring
-disabled
-Platform details
-Linux/UNIX
-AMI name
-AMI_AVTR-lxb2bnaecqa01
-Allowed image
--
-Termination protection
-Enabled
-Stop protection
-Disabled
-Launch time
-Fri Nov 22 2024 06:03:06 GMT-0500 (Eastern Standard Time) (over 1 year)
-AMI location
-267122874949/AMI_AVTR-lxb2bnaecqa01
-Instance reboot migration
-Default (On)
-Instance auto-recovery
-Default
-Lifecycle
-normal
-Stop-hibernate behavior
-Disabled
-AMI Launch index
-0
-Key pair assigned at launch
+8. Integration Readiness
+•	Provide:
+o	AWS Account IDs (Avantor & NuSil)
+o	CloudTrail S3 bucket details
+•	Share point of contact for implementation
+•	Confirm if change window is required
 
-B2BNAECStageKP
-State transition reason
-–
-Credit specification
-unlimited
-Kernel ID
-–
-State transition message
-–
-Usage operation
-RunInstances
-RAM disk ID
-–
-Owner
-267122874949
-Enclaves Support
-Disabled
-Boot mode
-uefi
-Current instance boot mode
-uefi
-Allow tags in instance metadata
-Disabled
-Use RBN as guest OS hostname
-Disabled
-Answer RBN DNS hostname IPv4
-Disabled
-Host and placement group
-Info
-Host ID
-–
-Affinity
-–
-Placement group
-–
-Host resource group name
-–
-Tenancy
-default
-Placement group ID
-–
-Virtualization type
-hvm
-Reservation
-r-0866ab4eb66eac485
-Partition number
-–
-Number of vCPUs
-4
-Capacity reservation
-Info
-Capacity Reservation ID
-–
-Capacity Reservation setting
-open
+Please review and share:
+•	Owner from Platform Services team
+•	Timeline for prerequisite validation and IAM role setup
+
+Please let me know if you need a working session to complete the configuration and validation steps.
+
+
+Regards,
+Senthil Kumar.K
+Manager - Security Incident Response
+Avantor,
+Coimbatore- India.
+Senthilkumar.kalimuthu@avantorsciences.com
+ 
+
