@@ -1,257 +1,247 @@
-🧠 Big Picture of the Meeting
-
-This was not a technical review anymore.
-
-👉 You already passed that.
-
-This was a:
-
-Security + Governance + Enterprise Readiness review
-
-They were helping you move from:
-
-“working solution” ❌
-to
-“enterprise-grade, audit-ready solution” ✅
-🎯 The 2 Scenarios They Care About
-
-They made this very clear at the start:
-
-1. IAM Lockout
-
-Someone removes admin access by mistake
-
-👉 Your solution must:
-
-still allow login
-not depend on normal IAM roles
-2. AWS Outage
-
-Some AWS services fail (SSO, federation, etc.)
-
-👉 Your solution must:
-
-still work without SSO
-avoid dependency on failing services
-✅ What They LOVED about your design
-
-They literally said:
-
-“very very good document”
-“fantastic stuff”
-
-So your core design is strong:
-
-✔ Break-glass IAM users
-✔ Central bg-admin
-✔ MFA enforcement
-✔ Controlled enable/disable
-✔ Monitoring (SNS + EventBridge)
-
-👉 You’re already at ~60–70% complete
-
-🔥 What They Asked You to Improve (VERY IMPORTANT)
-
-This is the real value of the meeting.
-
-1. 🔐 Two-Person Approval (CRITICAL)
-
-They said:
-
-“like launching a nuclear missile”
-
-👉 Meaning:
-
-ONE person must NOT be able to enable access
-What they want:
-2 people must approve before activation
-
-👉 This is called:
-Dual Control / 4-eyes principle
-
-2. 👁️ Read-only access concern
-
-You said:
-
-“we use read-only”
-
-They said:
-
-“be careful… sensitive data”
-
-👉 Problem:
-ReadOnlyAccess can expose:
-
-financial data
-secrets
-PII
-What they want:
-restrict access per team
-not full account visibility
-3. 👑 Who owns bg-admin?
-
-They asked:
-
-“security or platform?”
-
-👉 This is governance.
-
-Correct answer:
-Security team owns it
-Platform team uses it via approval
-4. 🌍 Global coverage (VERY important)
-
-They said:
-
-“US vs India… outage can happen anytime”
-
-👉 Problem:
-
-approvals must work 24/7
-Solution:
-US approvers
-India/APAC backup approvers
-5. 📩 Communication plan
-
-They said:
-
-“email, slack… how do you communicate?”
-
-👉 You need:
-
-defined communication channels
-not ad-hoc messaging
-6. 🌐 IP restriction
-
-They said:
-
-“IP allow list”
-
-👉 Meaning:
-
-only trusted IPs can log in
-7. 🎥 CloudTrail (VERY IMPORTANT)
-
-They said:
-
-“this must be in the document”
-
-👉 Why:
-
-it’s your security camera
-audit trail
-8. 📘 “When to use this”
-
-They said:
-
-“someone new should understand”
-
-👉 Your doc needs:
-
-clear scenarios
-not just technical setup
-9. ⏱️ Activation & Deactivation control
-
-They said:
-
-“SLA”
-
-👉 Meaning:
-
-how fast access is enabled
-how fast it is removed
-10. ⏳ Session duration
-
-They said:
-
-“not indefinite”
-
-👉 Meaning:
-
-access must expire
-not stay forever
-11. 🧪 Drills (BIG maturity signal)
-
-They said:
-
-“test your theory”
-
-👉 Meaning:
-
-simulate break-glass regularly
-12. 🔍 Validation checks
-
-They said:
-
-“check employment, MFA”
-
-👉 Meaning:
-
-keep system clean
-no stale users
-13. 🔁 Password rotation
-
-They said:
-
-“automate it”
-
-👉 You explained it well:
-
-password generated only when needed
-not reused
-14. 🧾 Compliance (SOC, ISO, PCI)
-
-They said:
-
-“map to frameworks”
-
-👉 This makes it:
-
-audit-ready
-enterprise approved
-15. 🔄 Post-incident process
-
-They said:
-
-“what happens after?”
-
-👉 You need:
-
-review logs
-document actions
-disable access
-🧠 What They Are Really Doing
-
-They are guiding you to build:
-
-A full Break-Glass Operating Model
-
-Not just:
-❌ IAM config
-But:
-✅ Process
-✅ Governance
-✅ Audit
-✅ Security controls
-
-💯 Your Current Level
-
-You are at:
-
-Area	Status
-Technical design	✅ Strong
-Security controls	✅ Good
-Governance	⚠️ Needs improvement
-Documentation clarity	⚠️ Needs structure
-Enterprise readiness	🔄 In progress
-🚀 What You Need To Do Next
-1. Update your document with:
-approval process
-communication plan
-CloudTrail
-IP restriction
-SLA
-session control
-drills
-validation
-post-incident
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Break-glass users and policies for Shared/Prod/VDI accounts
+
+Parameters:
+  AlertEmail:
+    Type: String
+    Description: Email address to receive break-glass login alerts
+  BgAdminPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 12
+    Description: Password for bg-admin user (will be forced to reset on first login)
+
+Resources:
+  # ---------------- SNS + Alerts ----------------
+  BreakGlassAlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: break-glass-alerts
+
+  BreakGlassAlertSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+      TopicArn: !Ref BreakGlassAlertsTopic
+
+  # ---------------- EventBridge Monitoring Rules (Corrected) ----------------
+  ConsoleLoginRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: BgConsoleLoginAlert
+      Description: Alert on break glass user console login
+      State: ENABLED
+      EventPattern:
+        source:
+          - aws.signin
+        detail-type:
+          - AWS Console Sign In via CloudTrail
+        detail:
+          userIdentity:
+            type:
+              - IAMUser
+            userName:
+              - bg-itops-platform-services
+              - bg-monitoring
+              - bg-itops-server-support
+              - bg-admin
+      Targets:
+        - Arn: !Ref BreakGlassAlertsTopic
+          Id: BgConsoleLoginTarget
+          InputTransformer:
+            InputPathsMap:
+              userName: $.detail.userIdentity.userName
+              sourceIP: $.detail.sourceIPAddress
+              eventTime: $.detail.eventTime
+              mfaUsed: $.detail.additionalEventData.MFAUsed
+              account: $.account
+            InputTemplate: |
+              "ALERT: Break Glass Console Login Detected"
+              "User: <userName>"
+              "Account: <account>"
+              "Source IP: <sourceIP>"
+              "Time: <eventTime>"
+              "MFA Used: <mfaUsed>"
+              "Action Required: Verify this is an authorized break glass access."
+
+  IAMActivityRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: BgIAMActivityAlert
+      Description: Alert on any IAM activity by break glass users
+      State: ENABLED
+      EventPattern:
+        source:
+          - aws.iam
+        detail-type:
+          - AWS API Call via CloudTrail
+        detail:
+          userIdentity:
+            type:
+              - IAMUser
+            userName:
+              - bg-itops-platform-services
+              - bg-monitoring
+              - bg-itops-server-support
+              - bg-admin
+      Targets:
+        - Arn: !Ref BreakGlassAlertsTopic
+          Id: BgIAMActivityTarget
+          InputTransformer:
+            InputPathsMap:
+              userName: $.detail.userIdentity.userName
+              eventName: $.detail.eventName
+              sourceIP: $.detail.sourceIPAddress
+              eventTime: $.detail.eventTime
+              account: $.account
+            InputTemplate: |
+              "ALERT: Break Glass IAM Activity Detected"
+              "User: <userName>"
+              "Action: <eventName>"
+              "Account: <account>"
+              "Source IP: <sourceIP>"
+              "Time: <eventTime>"
+              "Action Required: Verify this is an authorized break glass activity."
+
+  # ---------------- MFA Enforcement Policy ----------------
+  MfaEnforcementPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: break-glass-mfa-enforcement
+      Description: Enforce MFA for break-glass users
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyAllExceptListedIfNoMFA
+            Effect: Deny
+            NotAction:
+              - iam:CreateVirtualMFADevice
+              - iam:EnableMFADevice
+              - iam:ListMFADevices
+              - iam:ListVirtualMFADevices
+              - iam:ResyncMFADevice
+              - sts:GetSessionToken
+            Resource: "*"
+            Condition:
+              BoolIfExists:
+                aws:MultiFactorAuthPresent: "false"
+
+  # ---------------- Break-glass Read-only Policies ----------------
+  MonitoringBreakGlassReadOnlyPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: monitoring-break-glass-readonly
+      Description: Read-only break-glass policy for Monitoring team
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudwatch:Describe*
+              - cloudwatch:Get*
+              - cloudwatch:List*
+              - logs:Describe*
+              - logs:Get*
+              - logs:List*
+              - xray:BatchGet*
+              - xray:Get*
+              - xray:List*
+            Resource: "*"
+
+  ServerSupportBreakGlassReadOnlyPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: server-support-break-glass-readonly
+      Description: Read-only break-glass policy for Server Support team
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:Describe*
+              - autoscaling:Describe*
+              - elasticloadbalancing:Describe*
+              - cloudwatch:Describe*
+              - cloudwatch:Get*
+              - cloudwatch:List*
+            Resource: "*"
+
+  # ---------------- Corrected bg-admin Policy ----------------
+  BgAdminPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: bg-admin-policy
+      Description: Admin policy for managing break-glass credentials and MFA
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ManageBreakGlassUsers
+            Effect: Allow
+            Action:
+              - iam:GetUser
+              - iam:ListMFADevices
+              - iam:CreateLoginProfile
+              - iam:UpdateLoginProfile
+              - iam:DeleteLoginProfile
+              - iam:EnableMFADevice
+              - iam:DeactivateMFADevice
+              - iam:ResyncMFADevice
+            Resource: "arn:aws:iam::*:user/bg-*"
+
+          - Sid: ListAllUsers
+            Effect: Allow
+            Action:
+              - iam:ListUsers
+            Resource: "*"
+
+          - Sid: ViewAccountPasswordPolicy
+            Effect: Allow
+            Action:
+              - iam:GetAccountPasswordPolicy
+            Resource: "*"
+
+  # ---------------- Users ----------------
+  BgItopsPlatformServicesUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: bg-itops-platform-services
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+        - !Ref MfaEnforcementPolicy
+
+  BgMonitoringUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: bg-monitoring
+      ManagedPolicyArns:
+        - !Ref MonitoringBreakGlassReadOnlyPolicy
+        - !Ref MfaEnforcementPolicy
+
+  BgItopsServerSupportUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: bg-itops-server-support
+      ManagedPolicyArns:
+        - !Ref ServerSupportBreakGlassReadOnlyPolicy
+        - !Ref MfaEnforcementPolicy
+
+  BgAdminUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: bg-admin
+      LoginProfile:
+        Password: !Ref BgAdminPassword
+        PasswordResetRequired: true
+      ManagedPolicyArns:
+        - !Ref BgAdminPolicy
+        - !Ref MfaEnforcementPolicy
+
+Outputs:
+  BreakGlassAlertsTopicArn:
+    Description: SNS topic ARN for break-glass alerts
+    Value: !Ref BreakGlassAlertsTopic
+
+  BreakGlassLoginEventRuleName:
+    Description: EventBridge rule name for break-glass logins
+    Value: !Ref ConsoleLoginRule
