@@ -1,49 +1,17 @@
-Hi team, I'm working on a SOX follow-up request for the devops-assume IAM user in AWS GovCloud. I believe I have the purpose of the account and the roles/responsibilities covered, but I need some clarification on the remaining items:
+That's an even stronger message because it's based on the actual task, not a separate lab test.
 
-How is the password for this account managed? Is it managed through CyberArk?
-What is the password rotation policy for this account?
-The auditors also requested evidence that "security questions" are enabled. Is this referring to CyberArk or another authentication mechanism? I couldn't find anything related to security questions in AWS IAM.
+You could send something like this:
 
+> Hi Ashvanee,
+>
+> I wanted to clarify something about the CloudFormation right-sizing process.
+>
+> I've been running drift detection before creating the Change Set, as recommended. For most of the servers I've checked, the drift is only due to manually added tags (for example, `PatchGroup`) and I haven't seen infrastructure drift on those stacks.
+>
+> During this right-sizing activity, I also noticed that the Change Set often shows **Replacement = Conditional** for the EC2 instance update. However, I completed one of the right-sizing changes through CloudFormation where the only drift was tag-related. Even though the Change Set showed **Replacement = Conditional**, the update completed successfully and the instance type was changed in place without recreating the instance.
+>
+> Given that, I wanted to confirm the expected approach. If the drift only consists of manually added tags, is it okay to proceed with the CloudFormation Change Set even if the Replacement field shows **Conditional**, or would you still prefer that I switch to a manual resize whenever I see **Conditional**?
+>
+> I just wanted to confirm the preferred approach before proceeding with the remaining production servers.
 
-
-
-
-
-
-
-1. Purpose of the Account
-
-The devops-assume IAM user is an administrative IAM account in the AWS GovCloud management account. Based on the AWS IAM review, the account has never been used for console sign-in, the active access key has never been used, and no AWS services have been accessed during the tracked period. The account currently has console access enabled and the AWS managed AdministratorAccess policy attached.
-
-2. Security Questions
-
-AWS IAM users do not support configurable security questions. Based on the AWS IAM console review, no MFA device is configured for this IAM user. If the auditors are referring to another authentication platform or security control, that information would need to be confirmed from the relevant system.
-
-3. Password Management
-
-The IAM user has console access enabled. The method used to manage the password cannot be determined from the AWS IAM console and is currently being confirmed.
-
-4. Password Rotation Policy
-
-The AWS account password policy is configured with the following requirements:
-
-Passwords expire every 90 days.
-Minimum password length is 8 characters.
-Passwords must contain at least one uppercase letter.
-Passwords must contain at least one lowercase letter.
-Passwords must contain at least one numeric character.
-Passwords must contain at least one special character.
-Users are allowed to change their own passwords.
-Password reuse is prevented for the previous 5 passwords.
-Password expiration does not require an administrator to reset the password.
-5. Roles and Responsibilities
-
-The IAM user is assigned the AWS managed AdministratorAccess policy, which provides full administrative permissions to AWS resources. Based on the AWS console review, the account has administrative privileges but has never been used for console sign-in, the active access key has never been used, and no AWS services have been accessed during the tracked period.
-
-Supporting Evidence Attached
-IAM User Summary
-Security Credentials
-Console Access Configuration
-AdministratorAccess Policy
-Last Accessed Information
-AWS Account Password Policy
+This frames it as an observation and a request for guidance, rather than arguing that the existing process is wrong.
