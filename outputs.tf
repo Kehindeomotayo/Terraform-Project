@@ -1,17 +1,21 @@
-That's an even stronger message because it's based on the actual task, not a separate lab test.
+Hi Team,
 
-You could send something like this:
+Below is a summary of the EC2 right-sizing activities completed.
 
-> Hi Ashvanee,
->
-> I wanted to clarify something about the CloudFormation right-sizing process.
->
-> I've been running drift detection before creating the Change Set, as recommended. For most of the servers I've checked, the drift is only due to manually added tags (for example, `PatchGroup`) and I haven't seen infrastructure drift on those stacks.
->
-> During this right-sizing activity, I also noticed that the Change Set often shows **Replacement = Conditional** for the EC2 instance update. However, I completed one of the right-sizing changes through CloudFormation where the only drift was tag-related. Even though the Change Set showed **Replacement = Conditional**, the update completed successfully and the instance type was changed in place without recreating the instance.
->
-> Given that, I wanted to confirm the expected approach. If the drift only consists of manually added tags, is it okay to proceed with the CloudFormation Change Set even if the Replacement field shows **Conditional**, or would you still prefer that I switch to a manual resize whenever I see **Conditional**?
->
-> I just wanted to confirm the preferred approach before proceeding with the remaining production servers.
+Resized manually through the EC2 Console
 
-This frames it as an observation and a request for guidance, rather than arguing that the existing process is wrong.
+The following instances were resized manually because the CloudFormation Change Set showed Replacement: Conditional for the EC2 instance and associated VolumeAttachment resources. The property-level differences primarily showed the InstanceId resolving to {{changeSet:KNOWN_AFTER_APPLY}}, so to avoid any potential unintended infrastructure changes, these instances were resized directly from the EC2 console.
+
+CloudFormation Stack	EC2 Instance(s)
+MFGProdInfraStack	EC2-MFG-Prod-Ignition-App-01, EC2-Prod-EpicorManaged-App-01
+HyperionHFMProdInfraStack	EC2-Prod-Hyperion-Foundation-APP01, EC2-Prod-Hyperion-Foundation-APP02, EC2-Prod-Hyperion-HFM-APP01
+CyberArkSharedInfraStack	EC2-Sec-Shared-CyberArk-App-01, EC2-Sec-Shared-CyberArk-App-02
+ToolsServerSharedInfraStack	EC2-Windows-Shared-TS-App-01
+SageProdInfraStack	EC2-ERP-Prod-Sage-App-01
+Resized through CloudFormation
+
+The remaining EC2 instances were resized by executing their CloudFormation Change Sets, as the updates did not present concerns requiring manual intervention.
+
+Please let me know if you need any additional details or screenshots from the Change Sets.
+
+Thanks,
