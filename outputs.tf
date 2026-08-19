@@ -1,1659 +1,352 @@
-Below is the copy-and-paste version. You can paste it directly into Word and add your screenshots where I have written [INSERT SCREENSHOT].
+Azure Well-Architected Assessment
 
-I have kept it focused on what your manager asked for: what the Azure Well-Architected Framework is, what each pillar expects, what you checked in the environment, what you observed, and what should happen next.
+Current-State Review, Evidence Pack and Remediation Roadmap
 
-AZURE WELL-ARCHITECTED FRAMEWORK ASSESSMENT
+Prepared for: Cloud / Platform Engineering Leadership
+Assessment evidence gathered: July-August 2026
 
-Prepared For: Rajesh / Cloud Engineering Team
-Prepared By: Cloud Engineering
-Assessment Date: August 2026
-Document Version: 1.0
-Classification: Internal Use
 
-1. EXECUTIVE SUMMARY
-1.1 Purpose
 
-The purpose of this assessment is to review the current Microsoft Azure environment against the principles of the Azure Well-Architected Framework.
 
-The assessment focuses on the following five pillars:
 
-Reliability
-Security
-Cost Optimization
-Operational Excellence
-Performance Efficiency
+Azure Advisor overview used as the consolidated pillar-level baseline.
 
-The objective of this exercise is to understand the current state of the Azure environment, identify existing controls and capabilities, highlight areas requiring improvement, and provide recommendations for future remediation.
 
-This assessment is primarily an observation and documentation exercise.
+Azure Well-Architected Assessment | Internal Working Document | August 2026
 
-No production changes were made as part of the assessment. Recommendations requiring configuration changes, additional licensing, architecture changes, or potential production impact should be reviewed by the appropriate technical owners and implemented through the established change/CAB process.
+1. Executive Summary
 
-2. AZURE WELL-ARCHITECTED FRAMEWORK
-
-The Microsoft Azure Well-Architected Framework provides architectural guidance designed to help organizations build and operate reliable, secure, efficient and manageable workloads in Azure.
-
-The framework helps organizations evaluate workloads against five key areas.
-
-Reliability
-
-Ensures workloads remain available, resilient and recoverable when failures occur.
-
-Security
-
-Protects applications, infrastructure, identities and data against security threats.
-
-Cost Optimization
-
-Ensures Azure resources are operated efficiently while avoiding unnecessary expenditure.
-
-Operational Excellence
-
-Ensures workloads can be effectively monitored, operated, maintained and improved.
-
-Performance Efficiency
-
-Ensures Azure resources provide the required performance while using appropriate capacity and architecture.
-
-The assessment therefore examined each of these pillars against the current Azure environment.
-
-3. ASSESSMENT APPROACH
-
-The assessment was performed through the Azure portal using a combination of:
-
-Azure Advisor
-Microsoft Defender for Cloud
-Azure Policy
-Microsoft Entra ID
-Azure Monitor
-Log Analytics
-Azure Resource Graph
-Azure Cost Management
-Azure Backup
-Recovery Services Vaults
-Azure Site Recovery
-Azure Update Manager
-Service Health
-Virtual Machine metrics
-Storage configuration
-Networking configuration
-Resource inventory
-Resource tagging
-
-The assessment followed the principle of:
-
-Expected Azure Well-Architected capability → Current Azure configuration → Observation → Gap → Recommendation
-
-No recommendations were implemented automatically.
-
-4. ASSESSMENT SUMMARY
-Pillar	Overall Assessment
-Reliability	Partially Aligned
-Security	Needs Improvement / Further Review
-Cost Optimization	Partially Aligned
-Operational Excellence	Moderate / Needs Improvement
-Performance Efficiency	Currently Aligned with Azure Advisor
-
-The Azure environment has several important foundational capabilities already configured, including Azure Monitor, Recovery Services Vaults, Azure Backup, Azure Policy, Cost Management and Azure Advisor.
-
-However, opportunities for improvement were identified in areas including disaster recovery, monitoring coverage, security posture management, resource tagging, cost governance, patch management and operational automation.
-
-5. RELIABILITY
-5.1 Purpose
-
-The Reliability pillar focuses on ensuring that workloads remain available during failures and can recover from infrastructure, application or regional disruptions.
-
-The following components were reviewed:
-
-Azure Regions
-Availability Zones
-Virtual Machines
-Availability Sets
-Azure Backup
-Recovery Services Vaults
-Backup Policies
-Storage Redundancy
-Azure Site Recovery
-Recovery and Failover Configuration
-5.2 Azure Regions
-Purpose
-
-Azure regions represent geographic locations containing Microsoft datacentres.
-
-Using appropriate regions helps organizations meet availability, latency, regulatory and disaster-recovery requirements.
-
-Current Observation
-
-Resources were observed primarily within the East US 2 region.
-
-Some Recovery Services Vault resources were also observed within East US.
-
-This demonstrates that resources exist across more than one Azure region.
-
-However, the existence of resources in multiple regions does not automatically mean workloads are configured for multi-region disaster recovery.
-
-Assessment
-
-Configured
-
-Recommendation
-
-Document the approved primary and disaster-recovery regions for business-critical workloads.
-
-[INSERT SCREENSHOT – Azure resource/VM region information]
-
-5.3 Virtual Machines
-
-Multiple Azure Virtual Machines were identified during the assessment.
-
-Examples included:
-
-VM-Network-test-01
-VMDATACORPPRODEASTUS2
-vmjbprodeastus2
-Windows 365-related virtual machines/images
-
-The environment therefore contains traditional VM-based workloads in addition to other Azure platform components.
-
-Assessment
-
-Configured
-
-Recommendation
-
-Maintain an accurate inventory containing:
-
-VM Owner
-Application
-Environment
-Business Criticality
-Backup Requirement
-DR Requirement
-Patch Group
-
-This information should ideally be maintained through Azure tags and CMDB integration.
-
-[INSERT SCREENSHOT – Virtual Machines list]
-
-5.4 Availability Zones
-
-Availability Zones provide physically separate datacentre locations within an Azure region.
-
-They help protect workloads from datacentre-level failures.
-
-During the assessment, VM-Network-test-01 was observed in:
-
-Region: East US 2
-Availability Zone: Zone 1
-
-Observation
-
-Availability Zones are being used for at least one VM.
-
-However, having one VM in Zone 1 does not itself provide multi-zone resilience.
-
-A highly available application would normally require appropriately designed components distributed across multiple zones.
-
-Assessment
-
-Configured for some resources / multi-zone resilience not fully validated
-
-Recommendation
-
-Identify business-critical workloads and determine whether they require multi-zone deployment.
-
-[INSERT SCREENSHOT – VM Availability Zone]
-
-5.5 Availability Sets
-
-Availability Sets provide VM resilience by distributing virtual machines across fault and update domains.
-
-Observation
-
-No Availability Sets were identified during the assessment.
-
-Assessment
-
-Not Configured
-
-This is not automatically a problem because Availability Zones may be preferred for modern workloads.
-
-Recommendation
-
-Review non-zonal workloads and determine whether Availability Sets or Availability Zones are appropriate based on application requirements.
-
-[INSERT SCREENSHOT – Availability Sets showing no resources]
-
-5.6 Azure Backup
-
-Azure Backup protects supported workloads by creating recovery points according to configured backup schedules and retention policies.
-
-Observation
-
-Azure Backup is configured through Recovery Services Vaults.
-
-The assessment identified protected backup items and backup storage.
-
-One reviewed vault showed approximately:
-
-222.94 GB Cloud GRS backup storage
-
-Important clarification
-
-The separate Backup Vaults page showed no Backup Vaults.
-
-This does not mean Azure Backup is not configured.
-
-Backup is currently being provided through Recovery Services Vaults.
-
-Assessment
-
-Configured
-
-[INSERT SCREENSHOT – Backup Items / Backup Storage]
-
-5.7 Recovery Services Vaults
-
-Recovery Services Vaults provide centralized management for Azure Backup and Azure Site Recovery.
-
-Four Recovery Services Vaults were identified during the assessment.
-
-Examples included:
-
-rsv-management-prod-eastus2
-vault459
-vault542
-vault863
-
-The vaults were located across East US and East US 2.
-
-Assessment
-
-Configured
-
-Recommendation
-
-Review vault configuration against:
-
-Backup requirements
-Retention requirements
-Soft Delete
-Immutability requirements
-Cross-region recovery requirements
-
-[INSERT SCREENSHOT – Recovery Services Vault list]
-
-5.8 Backup Policies
-
-Backup policies determine when backups occur and how long recovery points are retained.
-
-Several policies were identified, including examples such as:
-
-bakp-vm-prod-eastus2
-HourlyLogBackup
-DefaultPolicy
-EnhancedPolicy
-
-A reviewed policy showed:
-
-Daily backup
-Approximately 02:00 backup schedule
-30-day retention
-7-day instant restore retention
-Assessment
-
-Configured
-
-Recommendation
-
-Validate that backup schedules and retention periods meet application RPO/RTO and regulatory requirements.
-
-[INSERT SCREENSHOT – Backup Policies]
-
-5.9 Storage Redundancy
-
-Azure provides different storage redundancy models.
-
-Examples include:
-
-LRS – Locally Redundant Storage
-ZRS – Zone-Redundant Storage
-GRS – Geo-Redundant Storage
-GZRS – Geo-Zone-Redundant Storage
-Observation
-
-The reviewed storage account avtrcmg used:
-
-Locally Redundant Storage (LRS)
-
-Backup storage was also observed using:
-
-Geo-Redundant Storage (GRS)
-
-Assessment
-
-Configured
-
-Recommendation
-
-Storage redundancy should be selected based on workload criticality and recovery requirements.
-
-LRS should not automatically be considered inadequate; however, business-critical data should be evaluated to determine whether zone or geo redundancy is required.
-
-[INSERT SCREENSHOT – Storage Account replication]
-
-5.10 Azure Site Recovery
-
-Azure Site Recovery provides workload replication and disaster-recovery failover capabilities.
-
-Observation
-
-Site Recovery capability was available within the Recovery Services Vault.
-
-However, the Replicated Items page showed:
-
-No replicated items found.
-
-This means that no workloads were evidenced as being actively replicated using Azure Site Recovery during the assessment.
-
-Assessment
-
-Not currently evidenced as configured for workload replication
-
-Risk
-
-If production workloads require disaster recovery, the absence of replication could result in extended recovery time following a regional or infrastructure failure.
-
-Recommendation
-
-Define:
-
-Recovery Time Objective (RTO)
-Recovery Point Objective (RPO)
-DR region
-Replication requirements
-Recovery plans
-Test failover schedule
-
-before implementing Site Recovery.
-
-[INSERT SCREENSHOT – Site Recovery / No replicated items]
-
-5.11 Reliability Conclusion
-
-The Azure environment has a good backup foundation through Recovery Services Vaults and Azure Backup.
-
-Availability Zones are being used for at least some resources.
-
-The main reliability gap identified is that Azure Site Recovery replication and recovery plans were not evidenced.
-
-Reliability Overall Assessment
-
-PARTIALLY ALIGNED
-
-6. SECURITY
-6.1 Purpose
-
-The Security pillar focuses on protecting Azure identities, infrastructure, applications and data.
-
-The following areas were reviewed:
-
-Microsoft Defender for Cloud
-Security Recommendations
-Defender CSPM
-Azure Policy
-Microsoft Entra ID
-MFA
-Conditional Access
-Storage Security
-Resource Governance
-Resource Tags
-6.2 Microsoft Defender for Cloud
-
-Microsoft Defender for Cloud provides security posture management and workload protection capabilities.
-
-It can identify:
-
-Security misconfigurations
-Vulnerabilities
-Weak security controls
-Exposed resources
-Regulatory compliance gaps
-Observation
-
-Microsoft Defender for Cloud is available within the environment.
-
-However, the advanced Defender CSPM capability was identified as not enabled.
-
-Important consideration
-
-Defender CSPM provides additional advanced security posture capabilities but introduces additional cost.
-
-Therefore, it should not be enabled without approval.
-
-Assessment
-
-Partially Configured
-
-Recommendation
-
-Evaluate:
-
-Security benefits
-Resource scope
-Monthly cost
-Existing security tooling
-Business requirements
-
-before requesting approval to enable Defender CSPM.
-
-[INSERT SCREENSHOT – Defender for Cloud / Environment Settings]
-
-6.3 Azure Security Recommendations
-
-Security recommendations were identified through Azure security tooling and Azure Advisor.
-
-Assessment
-
-Needs Improvement
-
-Recommendations should not automatically be implemented.
-
-Each recommendation should first be evaluated for:
-
-Applicability
-Resource ownership
-Production impact
-Cost
-Dependency
-Rollback
-CAB requirement
-
-[INSERT SCREENSHOT – Security Recommendations]
-
-6.4 Azure Policy
-
-Azure Policy provides centralized governance and compliance enforcement.
-
-Policies can:
-
-Audit configurations
-Deny non-compliant deployments
-Modify configurations
-Deploy required settings
-Track compliance
-Observation
-
-Azure Policy assignments and compliance were reviewed.
-
-Assessment
-
-Configured / Compliance Requires Ongoing Review
-
-Recommendation
-
-Review:
-
-Management Group assignments
-Subscription assignments
-Non-compliant resources
-Policy exemptions
-Microsoft Cloud Security Benchmark coverage
-
-[INSERT SCREENSHOT – Azure Policy Compliance]
-
-6.5 Microsoft Entra ID and Conditional Access
-
-Microsoft Entra ID provides identity and access management for Azure.
-
-Conditional Access provides policy-based access controls using factors such as:
-
-User
-Group
-Application
-Location
-Device
-Authentication strength
-Risk
-Observation
-
-Conditional Access policies were located and reviewed during the assessment.
-
-Recommendation
-
-Validate:
-
-MFA coverage
-Administrator protection
-Legacy authentication restrictions
-Guest access
-Emergency/break-glass accounts
-Policy exclusions
-Privileged Identity Management where applicable
-
-[INSERT SCREENSHOT – Conditional Access Policies]
-
-6.6 Resource Tagging
-
-Tags help identify:
-
-Application
-Owner
-Environment
-Department
-Cost Centre
-Business Unit
-Criticality
-Observation
-
-During manual review, many Azure resources were found with no tags.
-
-Impact
-
-Missing tags can affect:
-
-Cost allocation
-Ownership identification
-Automation
-Governance
-Incident management
-CMDB integration
-Assessment
-
-Needs Improvement
-
-Recommendation
-
-Introduce mandatory tags such as:
-
-Application
-Owner
-Environment
-CostCenter
-BusinessUnit
-Criticality
-
-Azure Policy can then be used to audit or enforce the tagging standard.
-
-[INSERT SCREENSHOT – Resource with no tags]
-
-6.7 Security Conclusion
-
-The environment has foundational Azure security capabilities, but further improvements are required.
-
-Particular attention should be given to:
-
-Defender coverage
-Defender CSPM decision
-Azure Policy compliance
-Conditional Access coverage
-Security recommendations
-Resource tagging
-Security Overall Assessment
-
-NEEDS IMPROVEMENT / FURTHER VALIDATION
-
-7. COST OPTIMIZATION
-7.1 Purpose
-
-The Cost Optimization pillar focuses on ensuring Azure services deliver required business capability without unnecessary expenditure.
-
-Areas reviewed included:
-
-Azure Cost Management
-Cost Analysis
-Budgets
-Cost Alerts
-Azure Advisor Cost
-Savings Plans
-Reserved Capacity
-Resource Tagging
-Resource Utilization
-7.2 Azure Cost Management
-
-Azure Cost Management provides visibility into cloud expenditure.
-
-Observation
-
-Azure Cost Management was available and spending could be analyzed by:
-
-Subscription
-Resource Group
-Service
-Resource
-
-During the assessment, the Landing Zone Hub subscription showed approximately $1,808 for the reviewed July 2026 cost view.
-
-Assessment
-
-Configured
-
-[INSERT SCREENSHOT – Cost Analysis]
-
-7.3 Budgets
-
-Azure Budgets can be used to track spending against defined financial thresholds.
-
-Observation
-
-No budget was identified for the reviewed scope.
-
-Assessment
-
-Needs Improvement
-
-Recommendation
-
-Configure budgets at appropriate subscription or workload scopes.
-
-Example thresholds:
-
-50%
-75%
-90%
-100%
-
-Notifications should be sent to responsible technical and financial owners.
-
-[INSERT SCREENSHOT – Budgets]
-
-7.4 Cost Alerts
-Observation
-
-No cost alerts were identified within the reviewed scope.
-
-Assessment
-
-Needs Improvement
-
-Recommendation
-
-Configure alerts linked to approved budgets and responsible owners.
-
-[INSERT SCREENSHOT – Cost Alerts]
-
-7.5 Azure Advisor Cost Recommendations
-
-Azure Advisor provides cost-saving recommendations based on resource utilization and purchasing models.
-
-Observation
-
-Advisor identified potential savings opportunities.
-
-Examples captured during the assessment included:
-
-Azure Savings Plan
-
-Estimated annual saving of approximately:
-
-$1,953 USD
-
-A Cosmos DB Reserved Capacity recommendation was also observed with approximately:
-
-$84 USD estimated annual saving
-
-Assessment
-
-Optimization Opportunities Available
-
-Important consideration
-
-Savings Plans and reservations represent financial commitments.
-
-They should not be purchased solely because Advisor recommends them.
-
-Recommendation
-
-Validate:
-
-Historical usage
-Expected future demand
-Workload lifecycle
-Commitment period
-Break-even point
-
-before purchasing.
-
-[INSERT SCREENSHOT – Azure Advisor Cost Recommendations]
-
-7.6 Cost and Tagging
-
-Missing resource tags also affect Cost Optimization because expenditure cannot easily be allocated to:
-
-Applications
-Teams
-Business units
-Cost centres
-
-Improving tagging will therefore benefit both Security/Governance and Cost Optimization.
-
-7.7 Cost Optimization Conclusion
-
-Azure provides good cost visibility through Cost Management and Advisor.
-
-However, improvements are required around:
-
-Budgets
-Cost alerts
-Tagging
-Commitment planning
-Regular rightsizing review
-Cost Optimization Overall Assessment
-
-PARTIALLY ALIGNED
-
-8. OPERATIONAL EXCELLENCE
-8.1 Purpose
-
-Operational Excellence focuses on the ability to operate Azure workloads effectively through:
-
-Monitoring
-Logging
-Automation
-Change visibility
-Patch management
-Health monitoring
-Operational procedures
-
-The following services were reviewed:
-
-Azure Monitor
-Activity Log
-Log Analytics
-Change Analysis
-Azure Update Manager
-Azure Automation
-Azure Service Health
-Health Advisories
-Resource Graph
-Azure Advisor Operational Excellence
-8.2 Azure Monitor
-
-Azure Monitor provides centralized monitoring for Azure resources.
-
-It collects:
-
-Metrics
-Logs
-Alerts
-Application telemetry
-Infrastructure telemetry
-Observation
-
-Azure Monitor is available and resource metrics could be reviewed.
-
-Assessment
-
-Configured
-
-[INSERT SCREENSHOT – Azure Monitor Overview]
-
-8.3 Activity Log
-
-The Azure Activity Log records control-plane operations.
-
-Examples include:
-
-Resource creation
-Configuration changes
-Deletion
-Backup operations
-Administrative actions
-Observation
-
-Recent activities were visible, including backup-related operations.
-
-Assessment
-
-Configured
-
-[INSERT SCREENSHOT – Activity Log]
-
-8.4 Log Analytics
-
-Log Analytics provides centralized log storage and querying.
-
-Observation
-
-A workspace named:
-
-ServicesHub-OnDemandAssessments
-
-was identified.
-
-A retention period of approximately:
-
-31 days
-
-was observed.
-
-Assessment
-
-Configured
-
-Recommendation
-
-Validate whether 31 days satisfies:
-
-Security requirements
-Operational troubleshooting requirements
-Audit requirements
-Regulatory requirements
-
-Longer retention should only be configured where required because it can increase cost.
-
-[INSERT SCREENSHOT – Log Analytics Workspace]
-
-8.5 Change Analysis
-
-Change Analysis helps identify configuration changes that may have caused incidents or performance issues.
-
-Observation
-
-Resource changes were visible.
-
-Assessment
-
-Configured
-
-[INSERT SCREENSHOT – Change Analysis]
-
-8.6 Azure Update Manager
-
-Azure Update Manager provides operating-system patch assessment and orchestration.
-
-Observation
-
-Six machines were discovered.
-
-The captured assessment showed:
-
-3 unsupported machines
-3 machines without update assessment data
-Assessment
-
-Partially Configured
-
-Recommendation
-
-Investigate:
-
-Why the machines are unsupported
-OS version
-Agent/configuration requirements
-Periodic assessment
-Patch scheduling
-Maintenance windows
-
-[INSERT SCREENSHOT – Azure Update Manager]
-
-8.7 Azure Automation
-
-Azure Automation provides automation capabilities using runbooks and scheduled operations.
-
-Observation
-
-No Azure Automation Accounts were identified.
-
-Assessment
-
-Not Configured
-
-However, this should not automatically be treated as a defect.
-
-An Automation Account should only be created where there is an actual automation requirement.
-
-Potential use cases include:
-
-VM start/stop
-Scheduled maintenance
-PowerShell automation
-Repetitive operational tasks
-
-[INSERT SCREENSHOT – Automation Accounts]
-
-8.8 Azure Service Health
-
-Azure Service Health provides information about Microsoft Azure platform incidents that may affect subscribed services.
-
-Observation
-
-No active Azure service issues were observed at the time of the assessment.
-
-Assessment
-
-Healthy at Time of Review
-
-[INSERT SCREENSHOT – Service Health]
-
-8.9 Health Advisories
-
-Six Health Advisories were observed.
-
-Examples included notices relating to:
-
-Secure Boot certificate updates
-VPN Gateway SKU changes
-Blob Storage migration
-App Service retirement
-Inbound NAT Pool retirement
-VM generation/capacity changes
-Important clarification
-
-These advisories do not necessarily represent current outages.
-
-They are primarily Microsoft notifications about future platform changes, retirements or required actions.
-
-Recommendation
-
-Assign owners and target dates for applicable advisories.
-
-[INSERT SCREENSHOT – Health Advisories]
-
-8.10 Service Health Alerts
-
-At least one Service Health alert was identified:
-
-Planned_Maintenance_Azure_tunnel
-
-This was associated with VPN-related infrastructure.
-
-Assessment
-
-Configured for at least one scenario
-
-Recommendation
-
-Review whether Service Health alerts cover all business-critical subscriptions and services.
-
-[INSERT SCREENSHOT – Service Health Alert]
-
-8.11 Azure Resource Graph
-
-Azure Resource Graph provides centralized resource inventory and querying across subscriptions.
-
-Observation
-
-Resource Graph Explorer was available and used during the assessment.
-
-Assessment
-
-Available / Operationally Useful
-
-It can be used for:
-
-Resource inventory
-Tagging assessment
-Security scope
-Governance reporting
-Defender costing
-Resource counts
-
-[INSERT SCREENSHOT – Resource Graph Explorer]
-
-8.12 Azure Advisor Operational Excellence
-
-Azure Advisor showed an Operational Excellence score of approximately 59% during the assessment.
-
-Six active recommendations were reviewed.
-
-Recommendation 1 – Trusted Launch
-
-Recommendation:
-
-Enable Trusted Launch foundational excellence / modern scenario for existing Generation 2 VMs.
-
-Impact: HIGH
-
-Affected: Approximately 4 of 5 reviewed applicable VMs.
-
-Recommendation
-
-Do not enable immediately.
-
-Validate:
-
-Generation 2 compatibility
-Secure Boot
-vTPM
-OS compatibility
-Application impact
-Rollback
-
-Then raise the appropriate production change/CAB.
-
-Recommendation 2 – Azure Monitor-Based Backup Alerts
-
-Impact: Medium
-
-Affected: 4 Recovery Services Vaults
-
-Recommendation
-
-Review existing backup alerting and Action Groups before migrating/enabling Azure Monitor-based backup alerts.
-
-Recommendation 3 – Enable VM Insights
-
-Impact: Medium
-
-Affected: 5 of 6 VMs
-
-Recommendation
-
-Review:
-
-Azure Monitor Agent
-Data Collection Rules
-Log Analytics workspace
-Data ingestion cost
-Monitoring requirements
-
-before implementation.
-
-Recommendation 4 – Monitor Virtual Hub Health
-
-Impact: Medium
-
-Affected: 1 Virtual Hub
-
-Recommendation
-
-Define required monitoring for:
-
-Hub health
-Routing
-BGP
-Connectivity
-VPN/ExpressRoute dependencies
-Recommendation 5 – Configure Connection Monitor for ExpressRoute
-
-Impact: Medium
-
-Affected: 2 ExpressRoute circuits
-
-Recommendation
-
-Coordinate with the network team and identify appropriate source/destination endpoints before configuring Connection Monitor.
-
-Recommendation 6 – Explicit Outbound Connectivity
-
-Recommendation:
-
-Add explicit outbound method to disable default outbound.
-
-Impact: Medium
-
-Approximately 597 active affected resources were shown during the review.
-
-Many affected resources appeared under:
-
-windows365-prod
-
-with network interface names resembling Microsoft Cloud PC resources.
-
-Critical consideration
-
-Do not attempt to modify 597 NICs individually.
-
-This recommendation should be reviewed at the network/subnet architecture level.
-
-Possible explicit outbound mechanisms could include approved solutions such as:
-
-NAT Gateway
-Azure Firewall
-Load Balancer outbound rules
-Other approved enterprise egress architecture
-
-The correct solution depends on the existing network design.
-
-Assessment
-
-Requires Architecture Review
-
-8.13 Operational Excellence Conclusion
-
-The environment has a good monitoring and logging foundation.
-
-However, improvements are required around:
-
-VM monitoring
-Backup alerting
-Patch management
-Network monitoring
-Trusted Launch
-Outbound network architecture
-Automation where justified
-Operational Excellence Overall Assessment
-
-MODERATE / NEEDS IMPROVEMENT
-
-9. PERFORMANCE EFFICIENCY
-9.1 Purpose
-
-Performance Efficiency focuses on ensuring workloads use appropriate resources and can meet performance requirements without unnecessary over-provisioning.
-
-The assessment reviewed:
-
-Azure Advisor Performance
-VM sizing
-CPU
-Memory
-Disk
-Network
-VM availability
-9.2 Azure Advisor Performance
-
-Azure Advisor was reviewed across the selected subscriptions.
-
-Observation
-
-Azure Advisor reported:
-
-“You are following all of our performance recommendations for the selected subscriptions and resources.”
-
-No active Performance recommendations were shown.
-
-Assessment
-
-Currently Aligned
-
-[INSERT SCREENSHOT – Advisor Performance showing no recommendations]
-
-9.3 VM Performance – VM-Network-test-01
-
-The VM configuration observed was approximately:
-
-Size: Standard B2s
-vCPU: 2
-Memory: 4 GiB
-Operating System: Windows
-VM Generation: V2
-Availability Zone: Zone 1
-
-CPU
-
-The reviewed 24-hour CPU metric showed approximately:
-
-4–5% average CPU utilization
-
-with occasional short spikes reaching higher levels.
-
-Observation
-
-No sustained CPU pressure was observed.
-
-However, low CPU utilization over only 24 hours is not sufficient evidence to downsize a VM.
-
-Recommendation
-
-Review at least 30 days of representative utilization and workload requirements before making any rightsizing decision.
-
-[INSERT SCREENSHOT – CPU Percentage]
-
-9.4 Memory
-
-Available memory was reviewed.
-
-The VM generally showed approximately mid-range available memory, with temporary reductions.
-
-Observation
-
-No sustained memory pressure was identified from the captured period.
-
-Assessment
-
-No immediate issue identified
-
-[INSERT SCREENSHOT – Available Memory]
-
-9.5 Disk and Network
-
-Disk write and network activity were reviewed across sample VMs.
-
-Observation
-
-Normal workload activity and temporary spikes were observed.
-
-No sustained resource saturation was identified from the captured views.
-
-Recommendation
-
-Continue monitoring:
-
-Disk latency
-IOPS
-Throughput
-Network throughput
-Application response time
-
-[INSERT SCREENSHOT – Disk / Network Metrics]
-
-9.6 VM Availability
-
-The VM Availability Metric was reviewed.
-
-The VM generally reported:
-
-1 = Available
-
-However, a temporary drop to:
-
-0 = Unavailable
-
-was observed.
-
-Important consideration
-
-The metric alone does not explain the cause.
-
-Possible causes include:
-
-VM restart
-Stop/deallocation
-Azure maintenance
-Host event
-Operational change
-Recommendation
-
-If the event was unexpected, correlate the timestamp with:
-
-Activity Log
-Resource Health
-Change Analysis
-Maintenance history
-
-[INSERT SCREENSHOT – VM Availability Metric]
-
-9.7 Performance Efficiency Conclusion
-
-Azure Advisor currently reports no active Performance recommendations.
-
-The sample VM metrics reviewed did not show sustained CPU, memory, disk or network pressure.
-
-Therefore, no immediate performance remediation has been identified.
-
-However, performance monitoring should continue as workloads evolve.
-
-Performance Efficiency Overall Assessment
-
-CURRENTLY ALIGNED / NO IMMEDIATE ADVISOR REMEDIATION
-
-10. OVERALL FINDINGS
-
-The assessment identified several positive controls already in place.
-
-Strengths
-Azure Backup configured
-Recovery Services Vaults configured
-Backup policies configured
-Availability Zones used for some workloads
-Azure Monitor available
-Activity Logs available
-Log Analytics configured
-Change Analysis available
-Azure Cost Management available
-Azure Advisor actively providing recommendations
-Service Health monitoring available
-Resource Graph available
-No current Azure Advisor Performance recommendations
-Areas Requiring Improvement
-Azure Site Recovery replication not configured/evidenced
-Defender CSPM decision required
-Azure security recommendations require prioritization
-Resource tagging inconsistent
-Budgets not configured in reviewed scope
-Cost alerts not configured
-Operational Excellence Advisor score approximately 59%
-VM Insights not enabled for several VMs
-Backup alerting requires improvement
-ExpressRoute monitoring requires improvement
-Virtual Hub monitoring requires improvement
-Update Manager coverage incomplete
-Explicit outbound connectivity recommendation affects a large number of resources
-Health Advisories require tracking
-11. REMEDIATION PRIORITIES
-Priority 1 – High
-Trusted Launch
-
-Assess compatibility and create an approved change before enabling Trusted Launch for affected Generation 2 VMs.
-
-Security Findings
-
-Prioritize high-severity Defender/Advisor security recommendations.
-
-Disaster Recovery
-
-Determine which production applications require Azure Site Recovery.
-
-Priority 2 – Operational Monitoring
-
-Implement or improve, where approved:
-
-VM Insights
-Azure Monitor backup alerts
-Virtual Hub health monitoring
-ExpressRoute Connection Monitor
-Service Health alerts
-Update Manager coverage
-Priority 3 – Network Architecture
-
-Investigate the explicit outbound recommendation affecting approximately 597 resources.
-
-Determine:
-
-Which resources are Microsoft/Windows 365 managed
-Which resources are customer managed
-Existing egress design
-NAT Gateway usage
-Azure Firewall usage
-Route tables
-Subnet configuration
-
-No bulk NIC changes should be performed.
-
-Priority 4 – Governance and Cost
-
-Improve:
-
-Resource tagging
-Azure budgets
-Cost alerts
-Cost ownership
-Savings Plan evaluation
-Reserved Capacity evaluation
-12. CHANGE AND CAB APPROACH
-
-Azure Advisor recommendations should not automatically be implemented.
-
-For each remediation item, the following process should be followed:
-
-1. Validate Applicability
-
-Confirm the recommendation applies to the resource.
-
-2. Identify Owner
-
-Determine the responsible:
-
-Application team
-Cloud team
-Network team
-Security team
-Windows 365 team
-Database team
-3. Assess Impact
-
-Determine:
-
-Production impact
-Downtime
-Security impact
-Network impact
-Cost
-Dependencies
-4. Pre-Change Checks
-
-Capture current configuration and health.
-
-5. Implementation Plan
-
-Document exact implementation steps.
-
-6. Validation Plan
-
-Define how success will be confirmed.
-
-7. Rollback Plan
-
-Document how the previous configuration will be restored.
-
-8. CAB Approval
-
-Submit applicable production changes through the normal CAB process.
-
-9. Implementation
-
-Perform the approved change.
-
-10. Post-Change Validation
-
-Verify:
-
-Resource health
-Application connectivity
-Monitoring
-Security
-Performance
-11. Closure
-
-Update the remediation tracker and attach evidence.
-
-13. RECOMMENDED REMEDIATION TRACKER
-
-The following columns should be maintained in Excel or the project tracking system:
-
-ID
+This assessment reviews the current Azure platform against the five Azure Well-Architected pillars: Cost Optimization, Security, Reliability, Operational Excellence and Performance Efficiency. The review is evidence-led and uses Azure Advisor, Defender for Cloud / security posture views, Azure Policy and governance views, Service Health, Resource Graph, virtual-machine configuration, Storage Center and Azure Monitor metrics. Selected AWS screenshots are retained only as a cross-cloud maturity reference and are not treated as Azure evidence.
 
 Pillar
 
-Finding
+Observed position
 
-Azure Recommendation
+Assessment
 
-Subscription
+Cost Optimization
 
-Resource
+Advisor score 97%; 2 active cost recommendations affecting 3 resources
 
-Current State
+Strong; address remaining recommendations and improve allocation/tagging discipline
 
-Target State
+Security
 
-Impact
+Advisor score 29%; 44 active security recommendations affecting 62 resources
+
+Priority improvement area
+
+Reliability
+
+Advisor score 81%; 31 active reliability recommendations affecting 45 resources
+
+Generally established, with resilience gaps to close
+
+Operational Excellence
+
+Advisor score 59%; 6 active recommendations; 642/761 active resources shown
+
+Partially mature; monitoring and platform operations need standardisation
+
+Performance Efficiency
+
+Advisor reports all performance recommendations followed
+
+Strong point-in-time position; continue trend-based validation
+
+Overall conclusion: the environment has a solid Azure management foundation and good cost/performance signals, but the assessment should not be presented as “complete compliance.” Security posture and operational standardisation are the main remediation themes. The Advisor scores are directional service signals, not a substitute for a full control-by-control audit.
+
+2. Scope and Methodology
+
+The review covered the Azure tenant/subscription scope visible in the supplied evidence, including management/governance services, virtual machines, networking, storage, monitoring, health alerts and Advisor recommendations. Screenshots were captured from the Azure portal and reviewed as point-in-time evidence. Where a metric was sampled over 24 hours, conclusions are limited to that window.
+
+3. Environment and Resource Inventory
+
+Resource Graph and portal inventory views were used to establish what is deployed and to support scope validation. The supplied VM inventory shows six virtual machines in the viewed compute scope. Storage Center shows six managed disks: four standard and two premium, with three attached and three reserved; all six use LRS in the displayed view.
+
+
+
+Azure Resource Graph Explorer used for subscription/resource inventory queries.
+
+
+
+Storage Center disk inventory: six disks, standard/premium mix, attached/reserved state and LRS redundancy.
+
+4. Cost Optimization Assessment
+
+Azure Advisor reports a 97% Cost score with two active cost recommendations affecting three resources. This indicates that the assessed scope is close to Microsoft Advisor guidance for cost, while still leaving specific optimisation actions to validate. Cost governance should also include ownership tags, budget/forecast review, rightsizing based on longer-term utilisation, and lifecycle controls for unused resources.
+
+Review both remaining Advisor cost recommendations and record accept/remediate/waive decisions.
+
+Use 7-30 day utilisation windows before VM rightsizing; avoid decisions based only on a 24-hour sample.
+
+Enforce a minimum tagging standard such as Application, Owner, Environment, CostCenter and BusinessService where organisational policy allows.
+
+Review unattached/reserved disks, snapshots and idle resources on a recurring basis.
+
+
+
+Advisor overview: Cost score 97%, with two active cost recommendations affecting three resources.
+
+5. Security Assessment
+
+Security is the most significant improvement area in the evidence set. Advisor reports a 29% Security score with 44 active security recommendations affecting 62 resources. Earlier portal evidence also shows security/governance configuration being reviewed across policy, Defender/security posture and identity controls. The low Advisor score should drive a prioritised remediation backlog rather than a blanket conclusion that the platform is insecure; recommendations must be triaged by severity, applicability, compensating controls and workload criticality.
+
+Triage high-severity Defender/Advisor recommendations first and assign accountable owners and target dates.
+
+Validate Defender for Cloud plans and coverage at the appropriate management-group/subscription scope.
+
+Review Azure Policy initiatives and non-compliance, especially controls for secure transfer, network exposure, logging, encryption and tagging.
+
+Validate Entra Conditional Access/MFA coverage for privileged and standard administrative access, including emergency-access exclusions and monitoring.
+
+For VMs, review Trusted Launch applicability, encryption-at-host requirements, patching, endpoint protection and network exposure.
+
+
+
+Azure security posture / recommendation evidence reviewed during the assessment.
+
+
+
+Security recommendation detail used to identify remediation opportunities.
+
+6. Reliability Assessment
+
+Advisor reports an 81% Reliability score with 31 active reliability recommendations affecting 45 resources. Service Health alerting is configured for the landing-zone hub and targets VPN Gateway service-health events in East US and East US 2. VM evidence also shows availability and platform metrics. These are positive controls, but the active reliability recommendations should be reviewed for redundancy, backup, zone design, connectivity and recovery readiness.
+
+Review all 31 reliability recommendations and classify them by production impact.
+
+Validate backup policy, restore testing and recovery objectives for critical workloads.
+
+Confirm zone/region resilience for critical compute and network components rather than relying only on single-instance availability.
+
+Retain Service Health alerts and verify action-group routing/escalation.
+
+Review VPN/ExpressRoute resiliency and monitor connectivity health.
+
+
+
+Advisor overview: Reliability score 81% and 31 active reliability recommendations.
+
+
+
+Azure Service Health activity-log alert for VPN Gateway-related service-health events.
+
+
+
+VM overview showing availability, CPU and disk telemetry available in the portal.
+
+7. Operational Excellence Assessment
+
+Operational Excellence is partially mature. Advisor reports a 59% score and six active recommendations. The recommendation list highlights concrete platform operations gaps: Trusted Launch for existing VMs, migration to Azure Monitor-based backup alerts, VM Insights enablement, Virtual Hub health monitoring, ExpressRoute Connection Monitor and explicit outbound connectivity for network interfaces. These recommendations are directly actionable and should form the first operational backlog.
+
+Recommendation observed
+
+Impact / evidence
+
+Recommended treatment
+
+Enable Trusted Launch foundational excellence and modern security for existing VMs
+
+High; 4 of 5 VMs shown
+
+Assess compatibility and remediate through controlled change
+
+Switch to Azure Monitor based alerts for backup
+
+Medium; 4 of 4 Recovery Services vaults
+
+Standardise alerting and retire legacy alert path
+
+Enable VM Insights for virtual machines
+
+Medium; 5 of 6 VMs
+
+Enable where supported and route data to agreed monitoring workspace
+
+Monitor health for virtual hubs
+
+Medium; 1 of 1 Virtual Hubs
+
+Create health/metric alerts and operational runbook
+
+Configure Connection Monitor for ExpressRoute
+
+Medium; 2 of 2 circuits
+
+Implement end-to-end connectivity monitoring
+
+Add explicit outbound method to disable default outbound
+
+Medium; 629 of 974 network interfaces
+
+Plan migration to explicit outbound/NAT design; prioritise supported production networks
+
+
+
+Advisor Operational Excellence: six active recommendations and affected-resource counts.
+
+8. Performance Efficiency Assessment
+
+Azure Advisor shows no active Performance recommendations for the selected scope, which is a strong point-in-time signal. Azure Monitor evidence demonstrates visibility into CPU-related metrics, disk I/O and network traffic for selected VMs. For VM-Network-test-01, the captured 24-hour views show bursty disk and network activity rather than sustained saturation. For VMDATACORPPRODEASTUS2, disk read/write and network-in metrics are available; CPU-credit charts contain no visible datapoints, so they should be documented as “no datapoints observed / potentially not applicable” rather than interpreted as a fault.
+
+Keep Advisor performance recommendations under recurring review.
+
+Use 7-30 days of CPU, memory (via guest/VM Insights), disk latency/IOPS/throughput and network metrics for rightsizing decisions.
+
+Create alerts for sustained threshold breaches, not isolated spikes.
+
+Avoid deprecated metrics such as “Network In Billable (Deprecated)” for future baselines; use supported network metrics.
+
+
+
+Advisor Performance view: no active performance recommendations for the selected subscriptions/resources.
+
+
+
+VM-Network-test-01 CPU Credits Consumed over the displayed 24-hour period.
+
+
+
+VM-Network-test-01 Disk Read Bytes: bursty I/O with several short peaks.
+
+
+
+VM-Network-test-01 Disk Write Bytes: bursty writes rather than sustained saturation.
+
+
+
+VMDATACORPPRODEASTUS2 Disk Read Bytes monitoring evidence.
+
+
+
+VMDATACORPPRODEASTUS2 Disk Write Bytes: approximately 17.1 GiB shown for the displayed period.
+
+
+
+VMDATACORPPRODEASTUS2 Network In Total monitoring evidence.
+
+9. Governance, Tagging and Monitoring Observations
+
+The assessment evidence shows active use of Resource Graph, Azure Policy/governance views, Advisor and Azure Monitor. This is the correct tooling foundation for a scalable Azure control framework. The next maturity step is consistency: common policy assignment scope, mandatory ownership metadata, diagnostic settings, central log retention, alert routing and exception governance.
+
+Define and publish a minimum Azure resource-tag standard.
+
+Use Azure Policy to audit or enforce required controls where operationally safe.
+
+Centralise Activity Logs and resource diagnostic logs in the approved Log Analytics/SIEM architecture.
+
+Document alert ownership, severity mapping, escalation paths and maintenance-window handling.
+
+Schedule a monthly Advisor/Defender/Policy review with tracked remediation decisions.
+
+
+
+Resource/governance inventory evidence supporting control standardisation.
+
+10. AWS Baseline / Azure Parity Reference
+
+The supplied AWS screenshots are useful as a maturity comparator only. They show controls already familiar to the organisation, including Compute Optimizer rightsizing findings, EC2 status checks, IMDSv2 enforcement, SSM instance-profile usage and controlled termination/decommission activity. The Azure target should achieve equivalent outcomes using Azure-native controls rather than duplicating AWS implementation details.
+
+
+
+AWS comparison: EC2 instance with Compute Optimizer “Over-provisioned” finding, IMDSv2 required and SSM instance profile.
+
+
+
+AWS comparison: EC2 system, instance and EBS status checks passing.
+
+
+
+AWS comparison: controlled decommission evidence after termination protection removal.
+
+11. Prioritised Remediation Roadmap
 
 Priority
 
-Owner
+Timeframe
 
-CAB Required
+Actions
 
-Implementation Plan
+P1 - Security
 
-Validation
+0-30 days
 
-Rollback
+Triage 44 security recommendations; address high severity; validate Defender coverage, Conditional Access/MFA, critical Policy non-compliance and exposed resources.
 
-Status
+P1 - Operations
 
-Evidence
+0-30 days
 
-14. SERVICE EXPLANATION / TALKING POINTS
+Move backup alerting to Azure Monitor; establish owners/action groups; implement Virtual Hub and ExpressRoute monitoring.
 
-This section can be used when explaining the assessment to engineers who are less familiar with Azure.
+P2 - Platform hygiene
 
-Azure Advisor
+30-60 days
 
-Azure Advisor analyzes Azure resources and provides Microsoft recommendations across:
+Enable VM Insights where appropriate; assess Trusted Launch; standardise diagnostic settings, tags and log retention.
 
-Cost
-Security
-Reliability
-Operational Excellence
+P2 - Networking
+
+30-90 days
+
+Plan explicit outbound connectivity and removal of reliance on default outbound access; validate resilient egress design.
+
+P3 - Optimisation
+
+Ongoing
+
+Close remaining cost/reliability recommendations; use 7-30 day performance trends for rightsizing; review Advisor monthly.
+
+12. Recommended Target State
+
+The target state is an Azure platform where management-group policy defines the baseline, Defender for Cloud provides continuous security posture management, Azure Monitor/Log Analytics provides central observability, Service Health and workload alerts route through owned action groups, identity is protected by Conditional Access/MFA, networking uses explicit and resilient connectivity, and Advisor recommendations are reviewed through a documented operational cadence. Exceptions should be time-bound, owned and auditable.
+
+13. Assessment Limitations
+
+This is a point-in-time assessment based on portal screenshots and visible configuration; it is not a penetration test or formal compliance certification.
+
+Advisor scores and recommendation counts can change as resources, subscriptions and Microsoft recommendation logic change.
+
+The 24-hour performance screenshots are insufficient for definitive capacity planning or rightsizing.
+
+Some screenshots represent selected resources rather than every resource in every subscription.
+
+AWS screenshots are contextual comparison evidence and must not be reported as Azure findings.
+
+14. Management Summary / Suggested Message
+
+The Azure Well-Architected review has been completed across the five pillars using Azure Advisor and supporting portal evidence. Cost Optimization and Performance Efficiency are currently the strongest areas, while Reliability is generally established but still has active recommendations. Security and Operational Excellence require the most focused remediation. The recommended next step is to convert the identified Advisor, Defender, Policy and monitoring findings into a prioritised backlog, address high-risk security and monitoring items first, and then re-assess the environment after remediation.
+
+Appendix A - Evidence Index
+
+Evidence area
+
+Screenshots included
+
+Advisor pillar baseline
+
+Advisor Overview, Performance, Operational Excellence
+
+Reliability / health
+
+Service Health alert, VM availability/monitoring
+
 Performance
 
-An Advisor recommendation is guidance and should still be assessed before implementation.
+CPU-credit, disk read/write and network metrics for selected VMs
 
-Microsoft Defender for Cloud
+Storage
 
-Defender for Cloud provides security posture management and workload protection.
+Storage Center managed disk summary
 
-It can identify security weaknesses and recommend improvements.
+Governance / inventory
 
-It is comparable at a high level to combining several AWS security capabilities, although the services are not identical.
+Resource Graph and governance views
 
-Defender CSPM
+Cross-cloud reference
 
-Defender CSPM provides advanced Cloud Security Posture Management capabilities.
+AWS Compute Optimizer, EC2 status checks and decommission evidence
 
-It can provide deeper analysis such as attack paths and advanced risk prioritization.
+Azure Well-Architected Assessment | Internal Working Document | August 2026
 
-It may introduce additional cost and therefore requires approval before enablement.
-
-Azure Policy
-
-Azure Policy is used to govern Azure configuration.
-
-It can:
-
-Audit
-Deny
-Modify
-Deploy required settings
-
-It is useful for enforcing organization-wide Azure standards.
-
-Azure Monitor
-
-Azure Monitor is Microsoft's central Azure monitoring platform.
-
-It collects:
-
-Metrics
-Logs
-Alerts
-Application telemetry
-Infrastructure telemetry
-Log Analytics
-
-Log Analytics stores and queries operational and security log data.
-
-It allows engineers to investigate incidents using Kusto Query Language (KQL).
-
-Activity Log
-
-The Activity Log records Azure control-plane activities.
-
-It can help answer questions such as:
-
-Who changed this resource?
-When was it changed?
-Was a resource deleted?
-Was a configuration updated?
-Recovery Services Vault
-
-A Recovery Services Vault is used to manage services such as:
-
-Azure Backup
-Azure Site Recovery
-
-It contains backup configuration, policies and recovery information.
-
-Azure Backup
-
-Azure Backup creates protected recovery points for supported Azure workloads.
-
-It helps recover data following:
-
-Accidental deletion
-Corruption
-Operational mistakes
-Infrastructure failure
-Azure Site Recovery
-
-Azure Site Recovery provides disaster-recovery replication and failover.
-
-It can replicate workloads so that they can be recovered in another location following a major failure.
-
-Azure Update Manager
-
-Azure Update Manager provides patch assessment and update orchestration for supported virtual machines.
-
-It helps identify:
-
-Missing updates
-Reboot requirements
-Patch status
-VM Insights
-
-VM Insights provides deeper monitoring of virtual machines.
-
-It can provide:
-
-VM performance
-Memory information
-Dependency information
-Guest operating system monitoring
-Connection Monitor
-
-Connection Monitor continuously tests network connectivity between endpoints.
-
-For ExpressRoute, it can help identify:
-
-Connectivity failures
-Latency
-Network degradation
-Azure Resource Graph
-
-Resource Graph allows engineers to query resources across multiple Azure subscriptions.
-
-It is useful for:
-
-Inventory
-Governance
-Tagging
-Security assessment
-Resource counting
-Reporting
-Azure Cost Management
-
-Azure Cost Management provides visibility into Azure expenditure.
-
-It supports:
-
-Cost Analysis
-Budgets
-Alerts
-Forecasting
-Cost allocation
-15. FINAL CONCLUSION
-
-The Azure Well-Architected Framework assessment has established a baseline of the current Azure environment across Reliability, Security, Cost Optimization, Operational Excellence and Performance Efficiency.
-
-The environment already contains several important foundational controls, including Azure Backup, Recovery Services Vaults, Azure Monitor, Log Analytics, Azure Policy, Cost Management and Azure Advisor.
-
-However, the assessment also identified areas requiring further maturity.
-
-The most important areas are:
-
-Security posture improvement
-Disaster-recovery planning
-Monitoring coverage
-Patch-management coverage
-Resource tagging
-Cost governance
-Network monitoring
-Explicit outbound architecture
-Operational automation where justified
-
-The next phase should therefore move from assessment to controlled remediation planning.
-
-Each recommendation should be validated against the actual workload, assigned to the appropriate technical owner and prioritized based on risk and business impact.
-
-Changes that may affect production workloads should follow the organization's established change-management and CAB process.
-
-The Azure Well-Architected assessment should also be repeated periodically to measure improvement and identify new recommendations as the Azure environment evolves.
-
-16. MANAGEMENT SUMMARY
-
-For management discussion, the assessment can be summarized as follows:
-
-The Azure environment has been reviewed against the five Azure Well-Architected Framework pillars: Reliability, Security, Cost Optimization, Operational Excellence and Performance Efficiency.
-
-The assessment confirms that several foundational Azure capabilities are already in place, including backup, monitoring, logging, governance and cost visibility.
-
-The review also identified opportunities for improvement, particularly around disaster recovery, security posture, monitoring coverage, patch management, tagging, financial governance and network monitoring.
-
-Azure Advisor currently shows no active Performance recommendations, while Operational Excellence contains six active recommendations requiring further assessment and remediation planning.
-
-No production changes were made as part of this assessment. The next phase will validate each finding with the appropriate technical owners, prioritize remediation based on risk and business impact, and progress applicable changes through the established CAB/change-management process.
-
-This is the version I would paste into Word as your main technical assessment. Your screenshots should sit directly underneath the relevant sections rather than being dumped at the end, because that makes it much easier for Rajesh and the engineering team to see the evidence supporting each conclusion.
