@@ -1,2 +1,1 @@
-Assessment
-Azure Advisor indicates a relatively strong Operational Excellence position; however, six active recommendations remain. These recommendations affect VM security foundations, backup monitoring, VM observability, network health monitoring and outbound connectivity. Therefore, the pillar should be considered partially aligned with targeted remediation required, rather than fully aligned.
+Review the existing backup alerting configuration, Azure Monitor alert rules, Action Groups, notification recipients and any external monitoring integrations. Where appropriate, migrate the four identified Recovery Services vaults to Azure Monitor-based backup alerts through the established change-management process.
