@@ -1,1 +1,5 @@
-Review the five applicable virtual machines and validate the existing Azure Monitor Agent, Data Collection Rules, Log Analytics workspace configuration, expected data ingestion and associated monitoring cost before enabling VM Insights. Prioritise production and business-critical VMs where enhanced guest-level monitoring provides operational value.
+Assessment
+Azure Service Health monitoring is available and no active service issues were observed at the time of assessment. Six Health Advisories were identified within the reviewed scope. These advisories should be assessed for applicability, affected subscriptions/resources and required remediation or planning activities.
+
+Recommendation
+Maintain Service Health monitoring and validate that Service Health alerts and Action Groups provide appropriate notification to operational teams for service incidents, planned maintenance, health advisories and security advisories.
