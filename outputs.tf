@@ -2,9 +2,4 @@ Hi Jim,
 
 Thanks for providing the details.
 
-I’ve successfully released the RDSH Dedicated Host. I’ve also completed the validation checks on both load balancers and am proceeding with the remaining decommissioning activities.
-
-I’ll update and close the request once everything is fully completed.
-
-Thanks,
-Joel
+The decommissioning activities have now been completed successfully. The RDSH Dedicated Host has been released, and both load balancers, PGGOVRDPLB01 and PGGOVRDPLB02, have been decommissioned.
