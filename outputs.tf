@@ -1,7 +1,1 @@
-Unable to access my GovCloud WorkSpace.
-
-I was initially able to log in successfully using my 02 account. When I tried to access my 03 account, it returned “Invalid credentials” even though I was using the password I normally use.
-
-After this, I tried logging back in with my 02 account, but that also started returning “Invalid credentials.”
-
-It appears both accounts may now be locked. Please check the accounts and route this incident to the IAM team if required so my GovCloud WorkSpace access can be restored.
+Decommissioning completed successfully in AWS GovCloud. Dedicated Host h-01c25d6d021c1fd1d was verified with no running instances and successfully released. PGGOVRDPLB01 and PGGOVRDPLB02 were reviewed and decommissioned after confirming no active backend targets. Associated unused target group was also removed where applicable. Post-change validation completed successfully.
