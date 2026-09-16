@@ -1,1 +1,10 @@
-Decommissioning completed successfully in AWS GovCloud. Dedicated Host h-01c25d6d021c1fd1d was verified with no running instances and successfully released. PGGOVRDPLB01 and PGGOVRDPLB02 were reviewed and decommissioned after confirming no active backend targets. Associated unused target group was also removed where applicable. Post-change validation completed successfully.
+Hi Jim,
+
+Thanks for providing the details.
+
+I’ve successfully released the RDSH Dedicated Host. I’ve also completed the validation checks on both load balancers and am proceeding with the remaining decommissioning activities.
+
+I’ll update and close the request once everything is fully completed.
+
+Thanks,
+Joel
